@@ -1,0 +1,59 @@
+<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+
+		<NpmLastInstall>node_modules/.last-install</NpmLastInstall>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="8.0.4" />
+		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="8.0.4" PrivateAssets="all" />
+		<PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="8.0.0" />
+		<PackageReference Include="Radzen.Blazor" Version="4.29.8" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\Application\Application.csproj" />
+	  <ProjectReference Include="..\Infrastructure\Infrastructure.csproj" />
+	</ItemGroup>
+
+	<Target Name="CheckForNodeJs" BeforeTargets="CheckForNpm">
+		<Exec Command="node -v" ContinueOnError="true">
+			<Output TaskParameter="ExitCode" PropertyName="NodeJsCheckExitCode" />
+		</Exec>
+		<Error Condition="'$(NodeJsCheckExitCode)' != '0'" Text="You must install Node.js to build this project" />
+	</Target>
+
+	<Target Name="CheckForNpm" BeforeTargets="NpmInstall">
+		<Exec Command="npm -v" ContinueOnError="true">
+			<Output TaskParameter="ExitCode" PropertyName="NpmCheckExitCode" />
+		</Exec>
+		<Error Condition="'$(NpmCheckExitCode)' != '0'" Text="You must install NPM to build this project" />
+	</Target>
+
+	<Target Name="NpmInstall" BeforeTargets="CheckForTypeScript" Inputs="package.json" Outputs="$(NpmLastInstall)">
+		<Exec Command="npm install" />
+		<Touch Files="$(NpmLastInstall)" AlwaysCreate="true" />
+	</Target>
+
+	<Target Name="CheckForTypeScript" BeforeTargets="CompileTypeScript" DependsOnTargets="NpmInstall">
+		<Exec Command="tsc -v" ContinueOnError="true">
+			<Output TaskParameter="ExitCode" PropertyName="TypeScriptCheckExitCode" />
+		</Exec>
+		<Error Condition="'$(TypeScriptCheckExitCode)' != '0'" Text="You must install TypeScript to build this project" />
+	</Target>
+
+	<Target Name="CompileTypeScript" BeforeTargets="CompileTailwindCSS" Condition="Exists('tsconfig.json')">
+		<Exec Command="npm run build-typescript" Condition="'$(Configuration)' == 'Debug'" />
+		<Exec Command="npm run release-typescript" Condition="'$(Configuration)' == 'Release'" />
+	</Target>
+
+	<Target Name="CompileTailwindCSS" BeforeTargets="PreBuildEvent">
+		<Exec Command="npm run build-tailwind" Condition="'$(Configuration)' == 'Debug'" />
+		<Exec Command="npm run release-tailwind" Condition="'$(Configuration)' == 'Release'" />
+	</Target>
+
+</Project>
