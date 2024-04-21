@@ -1,0 +1,84 @@
+﻿@inject ClientService ClientService
+@inject IOptions<OsrsWikiValues> OptionsOsrsWiki
+
+<RadzenDataGrid @ref="_grid" Count="@_items.Count()" Data="@_items" PageSize="20" AllowColumnReorder="true" AllowFiltering="true"
+                FilterPopupRenderMode="PopupRenderMode.OnDemand" AllowColumnResize="true" FilterMode="FilterMode.Advanced" AllowPaging="true" AllowSorting="true"
+                ColumnWidth="150px" LogicalFilterOperator="LogicalFilterOperator.And" PagerPosition="PagerPosition.TopAndBottom"
+                PagerHorizontalAlign="HorizontalAlign.Center" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowColumnPicking="true">
+    <Columns>
+        <RadzenDataGridColumn Property="Id" Title="Id" Visible="false" />
+        <RadzenDataGridColumn Property="Icon" Title="Icon">
+            <Template Context="item">
+                <RadzenImage Path="@StringUtility.BuildIconUri(OptionsOsrsWiki.Value.IconsBaseUri,item.Icon)" />
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn Property="Name" Title="Name" CssClass="cursor-pointer">
+            <Template Context="item">
+                <span class="rz-cell-data">@item.Name</span>
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn Property="Examine" Title="Examine" Width="250px" Visible="false" />
+        <RadzenDataGridColumn Property="High" Title="Instabuy" />
+        <RadzenDataGridColumn Property="Low" Title="Instasell" />
+        <RadzenDataGridColumn Property="HighTime" Title="Latest Instabuy">
+            <Template Context="item">
+                <span class="text-green-600">@item.HighTime</span>
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn Property="LowTime" Title="Latest Instasell">
+            <Template Context="item">
+                <span class="text-red-600">@item.LowTime</span>
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn Property="Limit" Title="Limit" Visible="false" />
+        <RadzenDataGridColumn Property="Value" Title="Value" Visible="false" CssClass="text-green-500">
+            <Template Context="item">
+                <span class="text-green-500">@item.Value</span>
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn Property="HighAlch" Title="HighAlch" Visible="false" />
+        <RadzenDataGridColumn Property="LowAlch" Title="LowAlch" Visible="false" />
+        <RadzenDataGridColumn Property="Members" Title="Members" Visible="false" />
+        <RadzenDataGridColumn Property="Margin" Title="Margin">
+            <Template Context="item">
+                <span class="text-green-400">@item.Margin</span>
+            </Template>
+        </RadzenDataGridColumn>
+    </Columns>
+</RadzenDataGrid>
+
+@code {
+    private readonly TimeSpan _updateInterval = TimeSpan.FromSeconds(60);
+    private Timer? _timer;
+    private RadzenDataGrid<ItemModel>? _grid;
+    private IEnumerable<ItemModel> _items = [];
+
+    protected async override Task OnInitializedAsync()
+    {
+        InitializeTimer();
+
+        await base.OnInitializedAsync();
+    }
+
+    private void InitializeTimer()
+    {
+        _timer?.Dispose();
+
+        _timer = new Timer(
+            callback: async _ =>
+            {
+                _items = await ClientService.GetItems();
+                _grid?.Reload();
+                await InvokeAsync(StateHasChanged);
+            },
+            state: null,
+            dueTime: TimeSpan.Zero,
+            period: _updateInterval
+        );
+    }
+
+    public void Dispose()
+    {
+        _timer?.Dispose();
+    }
+}

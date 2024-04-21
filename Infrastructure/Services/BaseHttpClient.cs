@@ -12,22 +12,19 @@ namespace Infrastructure.Services
             _httpClient.DefaultRequestHeaders.Add("User-Agent", "osrsprices.wiki");
         }
 
-        public Task<TResponse> GetAsync<TResponse>(string requestUri) =>
-            SendAsync<TResponse>(new HttpRequestMessage(HttpMethod.Get, requestUri));
+        public Task<TResponse?> GetAsync<TResponse>(string requestUri) =>
+            SendAsync<TResponse?>(new HttpRequestMessage(HttpMethod.Get, requestUri));
 
-        private async Task<TResponse> SendAsync<TResponse>(HttpRequestMessage request)
+        private async Task<TResponse?> SendAsync<TResponse>(HttpRequestMessage request)
         {
             using HttpResponseMessage response = await _httpClient.SendAsync(request);
 
             if (!response.IsSuccessStatusCode)
-            {
-                // TODO
-            }
+                return default;
 
             string content = await response.Content.ReadAsStringAsync();
 
-            return JsonConvert.DeserializeObject<TResponse>(content)
-                ?? throw new JsonException("Deserialization of response content is null");
+            return JsonConvert.DeserializeObject<TResponse?>(content) ?? default;
         }
     }
 }

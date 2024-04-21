@@ -14,7 +14,6 @@ fi
 node -v
 npm -v
 
-npm install
 npm install -g typescript
 tsc -v
 

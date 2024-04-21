@@ -25,7 +25,7 @@ namespace Application.Utilities
 
         public static string BuildIconUri(string? baseUri, string? iconPath)
         {
-            string uri = BuildUri(baseUri, iconPath);
+            string uri = BuildUri(baseUri, iconPath) + "?7263b";
 
             return WhitespaceCharacterRegex().Replace(uri, "_");
         }

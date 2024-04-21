@@ -1,49 +1,9 @@
 ﻿@page "/"
 
-@inject ClientService ClientService
-@inject IOptions<OsrsWikiValues> OptionsOsrsWiki
+<PageTitle>OSRS Live GE Prices</PageTitle>
 
-<PageTitle>OSRS Prices Wiki - WIP</PageTitle>
-
-<div class="bg-gradient-to-r from-purple-800 via-pink-800 to-red-800 w-full text-center">
-    <h1 class="text-xl font-semibold">Work In Progress</h1>
-</div>
-
-<RadzenDataGrid AllowColumnReorder="true" AllowFiltering="true" FilterPopupRenderMode="PopupRenderMode.OnDemand" AllowColumnResize="true" FilterMode="FilterMode.Advanced"
-                PageSize="20" AllowPaging="true" AllowSorting="true" Data="@_mappingResponse" ColumnWidth="150px" LogicalFilterOperator="LogicalFilterOperator.And"
-                PagerPosition="PagerPosition.TopAndBottom" PagerHorizontalAlign="HorizontalAlign.Center" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                AllowColumnPicking="true">
-    <Columns>
-        <RadzenDataGridColumn Property="Id" Title="Id" Visible="false" />
-        <RadzenDataGridColumn Property="Icon" Title="Icon">
-            <Template Context="icon">
-                <RadzenImage Path="@StringUtility.BuildIconUri(OptionsOsrsWiki.Value.IconsBaseUri,icon.Icon)" />
-            </Template>
-        </RadzenDataGridColumn>
-        <RadzenDataGridColumn Property="Name" Title="Name" CssClass="cursor-pointer">
-            <Template Context="name">
-                <span class="rz-cell-data">@name.Name</span>
-            </Template>
-        </RadzenDataGridColumn>
-        <RadzenDataGridColumn Property="Examine" Title="Examine" Width="250px" Visible="false" />
-        <RadzenDataGridColumn Property="Value" Title="Value" CssClass="text-green-500">
-            <Template Context="value">
-                <span class="text-green-500">@value.Value</span>
-            </Template>
-        </RadzenDataGridColumn>
-        <RadzenDataGridColumn Property="Limit" Title="Limit" />
-        <RadzenDataGridColumn Property="Members" Title="Members" />
-        <RadzenDataGridColumn Property="HighAlch" Title="HighAlch" />
-        <RadzenDataGridColumn Property="LowAlch" Title="LowAlch" />
-    </Columns>
-</RadzenDataGrid>
+<DataGrid />
 
 @code {
-    private IEnumerable<MappingModel>? _mappingResponse;
 
-    protected override async Task OnInitializedAsync()
-    {
-        _mappingResponse = await ClientService.GetMappingAsync();
-        await base.OnInitializedAsync();
-    }
 }
