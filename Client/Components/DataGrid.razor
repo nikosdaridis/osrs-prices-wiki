@@ -1,53 +1,99 @@
 ﻿@inject ClientService ClientService
 @inject IOptions<OsrsWikiValues> OptionsOsrsWiki
 
-<RadzenDataGrid @ref="_grid" Count="@_items.Count()" Data="@_items" PageSize="20" AllowColumnReorder="true" AllowFiltering="true"
+<RadzenDataGrid @ref="_grid" Count="@_items.Count()" Data="@_items" PageSize="15" PagerAlwaysVisible="true" AllowColumnReorder="true" AllowFiltering="true"
                 FilterPopupRenderMode="PopupRenderMode.OnDemand" AllowColumnResize="true" FilterMode="FilterMode.Advanced" AllowPaging="true" AllowSorting="true"
-                ColumnWidth="150px" LogicalFilterOperator="LogicalFilterOperator.And" PagerPosition="PagerPosition.TopAndBottom"
-                PagerHorizontalAlign="HorizontalAlign.Center" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowColumnPicking="true">
+                ColumnWidth="100px" LogicalFilterOperator="LogicalFilterOperator.And" PagerPosition="PagerPosition.TopAndBottom"
+                PagerHorizontalAlign="HorizontalAlign.Center" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowColumnPicking="true"
+                PageSizeOptions="_pageSizeOptions" PageSizeText="">
     <Columns>
-        <RadzenDataGridColumn Property="Id" Title="Id" Visible="false" />
-        <RadzenDataGridColumn Property="Icon" Title="Icon">
+        <RadzenDataGridColumn Property="Id" Title="Id" Visible="false" Width="30px" MinWidth="40px" />
+        <RadzenDataGridColumn Property="Icon" Title="Icon" Filterable="false" Sortable="false" Width="30px" MinWidth="40px">
             <Template Context="item">
-                <RadzenImage Path="@StringUtility.BuildIconUri(OptionsOsrsWiki.Value.IconsBaseUri,item.Icon)" />
+                <RadzenImage Path="@item.Icon" />
             </Template>
         </RadzenDataGridColumn>
-        <RadzenDataGridColumn Property="Name" Title="Name" CssClass="cursor-pointer">
+        <RadzenDataGridColumn Property="Name" Title="Name" CssClass="cursor-pointer" Width="100px" MinWidth="60px">
             <Template Context="item">
                 <span class="rz-cell-data">@item.Name</span>
             </Template>
         </RadzenDataGridColumn>
-        <RadzenDataGridColumn Property="Examine" Title="Examine" Width="250px" Visible="false" />
-        <RadzenDataGridColumn Property="High" Title="Instabuy" />
-        <RadzenDataGridColumn Property="Low" Title="Instasell" />
-        <RadzenDataGridColumn Property="HighTime" Title="Latest Instabuy">
+        <RadzenDataGridColumn Property="Examine" Title="Examine" Visible="false" Width="100px" MinWidth="60px" />
+        <RadzenDataGridColumn Property="InstaBuy" Title="Insta Buy" Width="70px" MinWidth="70px">
             <Template Context="item">
-                <span class="text-green-600">@item.HighTime</span>
+                <RadzenText Text="@item.InstaBuy.ToString("N0")" />
             </Template>
         </RadzenDataGridColumn>
-        <RadzenDataGridColumn Property="LowTime" Title="Latest Instasell">
+        <RadzenDataGridColumn Property="InstaSell" Title="Insta Sell" Width="70px" MinWidth="70px">
             <Template Context="item">
-                <span class="text-red-600">@item.LowTime</span>
+                <RadzenText Text="@item.InstaSell.ToString("N0")" />
             </Template>
         </RadzenDataGridColumn>
-        <RadzenDataGridColumn Property="Limit" Title="Limit" Visible="false" />
-        <RadzenDataGridColumn Property="Value" Title="Value" Visible="false" CssClass="text-green-500">
+        <RadzenDataGridColumn Property="InstaBuyTime" Title="Latest Insta Buy" FilterOperator="FilterOperator.LessThan" FilterValue="3600" Width="70px" MinWidth="70px">
             <Template Context="item">
-                <span class="text-green-500">@item.Value</span>
+                <RadzenText Text="@($"{NumericUtility.FormatSeconds(item.InstaBuyTime)} ago")" />
             </Template>
         </RadzenDataGridColumn>
-        <RadzenDataGridColumn Property="HighAlch" Title="HighAlch" Visible="false" />
-        <RadzenDataGridColumn Property="LowAlch" Title="LowAlch" Visible="false" />
-        <RadzenDataGridColumn Property="Members" Title="Members" Visible="false" />
-        <RadzenDataGridColumn Property="Margin" Title="Margin">
+        <RadzenDataGridColumn Property="InstaSellTime" Title="Latest Insta Sell" FilterOperator="FilterOperator.LessThan" FilterValue="3600" Width="70px" MinWidth="70px">
             <Template Context="item">
-                <span class="text-green-400">@item.Margin</span>
+                <RadzenText Text="@($"{NumericUtility.FormatSeconds(item.InstaSellTime)} ago")" />
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn Property="Limit" Title="Limit" Visible="false" Width="50px" MinWidth="50px">
+            <Template Context="item">
+                <RadzenText Text="@NumericUtility.FormatNumber(item.Limit, "0")" />
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn Property="Value" Title="Value" Visible="false" CssClass="text-green-500" Width="50px" MinWidth="50px">
+            <Template Context="item">
+                <RadzenText Text="@NumericUtility.FormatNumber(item.Value, "0")" />
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn Property="HighAlch" Title="HighAlch" Visible="false" Width="60px" MinWidth="60px">
+            <Template Context="item">
+                <RadzenText Text="@NumericUtility.FormatNumber(item.HighAlch, "0")" />
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn Property="LowAlch" Title="LowAlch" Visible="false" Width="60px" MinWidth="60px">
+            <Template Context="item">
+                <RadzenText Text="@NumericUtility.FormatNumber(item.LowAlch, "0")" />
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn Property="Members" Title="Members" Visible="false" Width="40px" MinWidth="40px">
+            <Template Context="item">
+                <RadzenImage Path="@StringUtility.BuildIconUri(OptionsOsrsWiki.Value.OldschoolWikiIconsBaseUri, $"{(item.Members ? "Member_icon" : "Free-to-play_icon")}.png")" />
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn Property="RoiPercentage" Title="Roi" Width="50px" MinWidth="50px">
+            <Template Context="item">
+                <RadzenText Text="@($"{item.RoiPercentage:F1}%")" />
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn Property="Margin" Title="Margin" SortOrder="SortOrder.Descending" Width="50px" MinWidth="50px">
+            <Template Context="item">
+                <RadzenText Text="@NumericUtility.FormatNumber(item.Margin)" />
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn Property="MarginXVolume" Title="Margin x Volume" Width="60px" MinWidth="60px">
+            <Template Context="item">
+                <RadzenText Text="@NumericUtility.FormatNumber(item.MarginXVolume)" />
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn Property="Volume" Title="Volume" Width="50px" MinWidth="50px">
+            <Template Context="item">
+                <RadzenText Text="@NumericUtility.FormatNumber(item.Volume)" />
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn Property="Tax" Title="Tax" Visible="false" Width="50px" MinWidth="50px">
+            <Template Context="item">
+                <RadzenText Text="@NumericUtility.FormatNumber(item.Tax)" />
             </Template>
         </RadzenDataGridColumn>
     </Columns>
 </RadzenDataGrid>
 
 @code {
+    private readonly IEnumerable<int> _pageSizeOptions = new int[] { 10, 15, 25, 50, 100 };
     private readonly TimeSpan _updateInterval = TimeSpan.FromSeconds(60);
     private Timer? _timer;
     private RadzenDataGrid<ItemModel>? _grid;

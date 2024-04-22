@@ -7,6 +7,7 @@ namespace Infrastructure.Services
     public class ClientService(BaseHttpClient httpClient, IOptions<OsrsWikiValues> optionsOsrsWiki)
     {
         private MappingModel[]? _mappingResponse;
+        private Dictionary<string, string>? _volumeResponse;
         private LatestModel? _latestResponse;
         private List<ItemModel> _items = [];
 
@@ -14,6 +15,9 @@ namespace Infrastructure.Services
         {
             if (_mappingResponse is null or [])
                 await GetMappingAsync();
+
+            if (_volumeResponse is null)
+                await GetVolumeAsync();
 
             await GetLatestAsync();
 
@@ -25,7 +29,7 @@ namespace Infrastructure.Services
         private async Task<bool> GetMappingAsync()
         {
             MappingModel[]? mappingResponse = await httpClient.GetAsync<MappingModel[]>(
-                StringUtility.BuildApiUri(optionsOsrsWiki.Value.APIBaseUri, optionsOsrsWiki.Value.Mapping));
+                StringUtility.BuildUri(optionsOsrsWiki.Value.OSRSPricesWikiBaseUri, optionsOsrsWiki.Value.Mapping));
 
             if (mappingResponse is null or [])
                 return false;
@@ -37,7 +41,7 @@ namespace Infrastructure.Services
         private async Task<bool> GetLatestAsync()
         {
             LatestModel? latestResponse = await httpClient.GetAsync<LatestModel>(
-                StringUtility.BuildApiUri(optionsOsrsWiki.Value.APIBaseUri, optionsOsrsWiki.Value.Latest));
+                StringUtility.BuildUri(optionsOsrsWiki.Value.OSRSPricesWikiBaseUri, optionsOsrsWiki.Value.Latest));
 
             if (latestResponse is null)
                 return false;
@@ -46,35 +50,59 @@ namespace Infrastructure.Services
             return true;
         }
 
+        private async Task<bool> GetVolumeAsync()
+        {
+            Dictionary<string, string>? volumeResponse = await httpClient.GetAsync<Dictionary<string, string>>(
+                StringUtility.BuildUri(optionsOsrsWiki.Value.OldschoolWikiBaseUri, optionsOsrsWiki.Value.Volume));
+
+            if (volumeResponse is null)
+                return false;
+
+            _volumeResponse = volumeResponse;
+            return true;
+        }
+
         private bool CombineItemsData()
         {
-            if (_mappingResponse is null or [] || _latestResponse?.Data is null)
+            if (_mappingResponse is null or [] || _latestResponse?.Data is null || _volumeResponse is null)
                 return false;
 
             _items = [];
 
             foreach (MappingModel mapping in _mappingResponse)
             {
-                if (_latestResponse.Data.TryGetValue(mapping.Id.ToString(), out LatestData? latest))
+                _latestResponse.Data.TryGetValue(mapping.Id.ToString(), out LatestData? latest);
+                _volumeResponse.TryGetValue(mapping.Name ?? "", out string? volumeString);
+
+                int volume = 0;
+                if (!string.IsNullOrWhiteSpace(volumeString))
+                    volume = int.Parse(volumeString);
+
+                ItemModel item = new()
                 {
-                    _items.Add(new()
-                    {
-                        Id = mapping.Id,
-                        Icon = mapping.Icon,
-                        Name = mapping.Name,
-                        Examine = mapping.Examine,
-                        High = (int)(latest.High is null ? 0 : latest.High),
-                        Low = (int)(latest.Low is null ? 0 : latest.Low),
-                        HighTime = (long)(latest.HighTime is null ? 0 : latest.HighTime),
-                        LowTime = (long)(latest.LowTime is null ? 0 : latest.LowTime),
-                        Limit = mapping.Limit,
-                        Value = mapping.Value,
-                        HighAlch = mapping.HighAlch,
-                        LowAlch = mapping.LowAlch,
-                        Members = mapping.Members,
-                        Margin = (int)(latest?.High is null || latest?.Low is null ? 0 : latest.High - latest.Low),
-                    });
-                }
+                    Id = mapping.Id,
+                    Icon = StringUtility.BuildIconUri(optionsOsrsWiki.Value.OldschoolWikiIconsBaseUri, mapping.Icon, "?7263b"),
+                    Name = mapping.Name,
+                    Examine = mapping.Examine,
+                    InstaBuy = latest?.High ?? int.MinValue,
+                    InstaSell = latest?.Low ?? int.MinValue,
+                    InstaBuyTime = (long)(DateTime.Now - DateTimeOffset.FromUnixTimeSeconds(latest?.HighTime ?? 0).LocalDateTime).TotalSeconds,
+                    InstaSellTime = (long)(DateTime.Now - DateTimeOffset.FromUnixTimeSeconds(latest?.LowTime ?? 0).LocalDateTime).TotalSeconds,
+                    Volume = volume,
+                    Limit = mapping.Limit,
+                    Value = mapping.Value,
+                    HighAlch = mapping.HighAlch,
+                    LowAlch = mapping.LowAlch,
+                    Members = mapping.Members,
+                };
+
+                item.Tax = item.InstaBuy >= 100 ? Math.Min(item.InstaBuy / 100, 5000000) : 0;
+                item.Margin = item.InstaBuy - item.InstaSell - item.Tax;
+                item.MarginXVolume = item.Margin * volume;
+                item.RoiPercentage = item.InstaSell != 0 ? (float)item.Margin / item.InstaSell * 100 : 0;
+
+                if (item.InstaBuy != int.MinValue && item.InstaSell != int.MinValue)
+                    _items.Add(item);
             }
 
             return true;

@@ -10,7 +10,7 @@ namespace Application.Utilities
         [GeneratedRegex(@"\s+", RegexOptions.Compiled)]
         private static partial Regex WhitespaceCharacterRegex();
 
-        public static string BuildApiUri(string? baseUri, string? routePath, params string?[] routeParameters)
+        public static string BuildUri(string? baseUri, string? routePath, params string?[] routeParameters)
         {
             string uri = BuildUri(baseUri, routePath);
 
@@ -23,9 +23,9 @@ namespace Application.Utilities
                 paramIndex < routeParameters.Length ? routeParameters[paramIndex++] ?? match.Value : match.Value);
         }
 
-        public static string BuildIconUri(string? baseUri, string? iconPath)
+        public static string BuildIconUri(string? baseUri, string? iconPath, params string?[] routeParameters)
         {
-            string uri = BuildUri(baseUri, iconPath) + "?7263b";
+            string uri = BuildUri(baseUri, iconPath, routeParameters);
 
             return WhitespaceCharacterRegex().Replace(uri, "_");
         }
