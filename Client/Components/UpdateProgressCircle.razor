@@ -4,8 +4,9 @@
 
 <div class="flex justify-end">
     <RadzenProgressBarCircular Style="font-size: 10px;" ShowValue="true" Size="ProgressBarCircularSize.Small"
-                               ProgressBarStyle="ProgressBarStyle.Primary" Mode="ProgressBarMode.Indeterminate">
-        <Template>@(60 - _updateInSeconds)</Template>
+                               ProgressBarStyle="ProgressBarStyle.Primary" Mode="ProgressBarMode.Determinate"
+                               Value="@_scaledElapsedSeconds">
+        <Template>@(60 - Math.Floor(_scaledElapsedSeconds * 0.6))</Template>
     </RadzenProgressBarCircular>
 </div>
 
@@ -14,7 +15,7 @@
     public DateTime LastExecution { get; set; }
 
     private PeriodicExecutor? _periodicExecutor;
-    private double _updateInSeconds;
+    private double _scaledElapsedSeconds;
 
     protected override void OnParametersSet()
     {
@@ -27,7 +28,7 @@
 
     private void HandleJobExecuted(object? sender, JobExecutedEventArgs e)
     {
-        _updateInSeconds = Math.Round((DateTime.Now - LastExecution).TotalSeconds);
+        _scaledElapsedSeconds = Math.Min(100, Math.Round((DateTime.Now - LastExecution).TotalSeconds / 60 * 100));
         StateHasChanged();
     }
 

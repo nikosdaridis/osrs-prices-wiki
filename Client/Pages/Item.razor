@@ -19,13 +19,16 @@
 
     private ItemModel? _item;
 
-    protected override Task OnInitializedAsync()
+    protected override async Task OnInitializedAsync()
     {
+        if (ClientService.GetCachedItems() is null or [])
+            await ClientService.GetLatestItems();
+
         _item = ClientService.GetItem(Id);
 
         if (_item is null)
             NavigationManager.NavigateTo("/");
 
-        return base.OnInitializedAsync();
+        await base.OnInitializedAsync();
     }
 }

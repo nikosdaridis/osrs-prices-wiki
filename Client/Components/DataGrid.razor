@@ -44,22 +44,25 @@
         </RadzenDataGridColumn>
         <RadzenDataGridColumn Property="Margin" Title="Margin" SortOrder="SortOrder.Descending" Width="50px" MinWidth="50px">
             <Template Context="item">
-                <RadzenText Style="@($"color: {CSSUtility.GetColor(nameof(item.Margin), item.Margin)}")" Text="@NumericUtility.FormatNumber(item.Margin)" />
+                <RadzenText Style="@($"color: {CSSHelper.GetColor(nameof(item.Margin), item.Margin)}")" Text="@NumericUtility.FormatNumber(item.Margin)" />
             </Template>
         </RadzenDataGridColumn>
         <RadzenDataGridColumn Property="RoiPercentage" Title="Roi" Width="50px" MinWidth="50px">
             <Template Context="item">
-                <RadzenText Text="@($"{item.RoiPercentage:F1}%")" />
+                <RadzenText Style="@($"color: {CSSHelper.GetColor(nameof(item.RoiPercentage), item.RoiPercentage)}")"
+                            Text="@($"{item.RoiPercentage:F1}%")" />
             </Template>
         </RadzenDataGridColumn>
         <RadzenDataGridColumn Property="MarginXVolume" Title="Margin x Volume" Width="60px" MinWidth="60px">
             <Template Context="item">
-                <RadzenText Text="@NumericUtility.FormatNumber(item.MarginXVolume)" />
+                <RadzenText Style="@($"color: {CSSHelper.GetColor(nameof(item.MarginXVolume), item.MarginXVolume)}")"
+                            Text="@NumericUtility.FormatNumber(item.MarginXVolume)" />
             </Template>
         </RadzenDataGridColumn>
         <RadzenDataGridColumn Property="Volume" Title="Volume" Width="50px" MinWidth="50px">
             <Template Context="item">
-                <RadzenText Text="@NumericUtility.FormatNumber(item.Volume)" />
+                <RadzenText Style="@($"color: {CSSHelper.GetColor(nameof(item.Volume), item.Volume)}")"
+                            Text="@NumericUtility.FormatNumber(item.Volume)" />
             </Template>
         </RadzenDataGridColumn>
         <RadzenDataGridColumn Property="Limit" Title="Limit" Visible="false" Width="50px" MinWidth="50px">
@@ -67,14 +70,16 @@
                 <RadzenText Text="@NumericUtility.FormatNumber(item.Limit, "0")" />
             </Template>
         </RadzenDataGridColumn>
-        <RadzenDataGridColumn Property="InstaBuyTime" Title="Latest Insta Buy" FilterOperator="FilterOperator.LessThan" FilterValue="@_defaultInstaTimeFilter" Width="70px" MinWidth="70px">
+        <RadzenDataGridColumn Property="InstaBuyTime" Title="Latest Insta Buy" Width="70px" MinWidth="70px">
             <Template Context="item">
-                <RadzenText Text="@($"{NumericUtility.FormatSeconds(item.InstaBuyTime)} ago")" />
+                <RadzenText Style="@($"color: {CSSHelper.GetColor(nameof(item.InstaBuyTime), item.InstaBuyTime)}")"
+                            Text="@($"{NumericUtility.FormatSeconds(item.InstaBuyTime)} ago")" />
             </Template>
         </RadzenDataGridColumn>
-        <RadzenDataGridColumn Property="InstaSellTime" Title="Latest Insta Sell" FilterOperator="FilterOperator.LessThan" FilterValue="@_defaultInstaTimeFilter" Width="70px" MinWidth="70px">
+        <RadzenDataGridColumn Property="InstaSellTime" Title="Latest Insta Sell" Width="70px" MinWidth="70px">
             <Template Context="item">
-                <RadzenText Text="@($"{NumericUtility.FormatSeconds(item.InstaSellTime)} ago")" />
+                <RadzenText Style="@($"color: {CSSHelper.GetColor(nameof(item.InstaSellTime), item.InstaSellTime)}")"
+                            Text="@($"{NumericUtility.FormatSeconds(item.InstaSellTime)} ago")" />
             </Template>
         </RadzenDataGridColumn>
         <RadzenDataGridColumn Property="Value" Title="Value" Visible="false" CssClass="text-green-500" Width="50px" MinWidth="50px">

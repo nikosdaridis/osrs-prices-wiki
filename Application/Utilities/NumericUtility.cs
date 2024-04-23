@@ -9,9 +9,9 @@
         {
             (long formattedValue, string suffix) = seconds switch
             {
-                _ when seconds >= 2628000 => (seconds / 2628000, "month"),
-                _ when seconds >= 86400 => (seconds / 86400, "day"),
-                _ when seconds >= 3600 => (seconds / 3600, "hour"),
+                _ when seconds >= 2_628_000 => (seconds / 2_628_000, "month"),
+                _ when seconds >= 86_400 => (seconds / 86_400, "day"),
+                _ when seconds >= 3_600 => (seconds / 3_600, "hour"),
                 _ when seconds >= 60 => (seconds / 60, "minute"),
                 _ => (seconds, "second")
             };
