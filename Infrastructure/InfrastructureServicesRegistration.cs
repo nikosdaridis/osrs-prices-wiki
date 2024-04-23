@@ -7,9 +7,9 @@ namespace Infrastructure
     {
         public static void AddInfrastructureServices(IServiceCollection services)
         {
+            services.AddSingleton<PeriodicExecutorFactory>();
             services.AddScoped<BaseHttpClient>();
             services.AddScoped<ClientService>();
-            services.AddScoped<PeriodicExecutor>();
         }
     }
 }

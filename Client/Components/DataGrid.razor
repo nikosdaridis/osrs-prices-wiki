@@ -1,9 +1,14 @@
 ﻿@implements IDisposable
 
+@inject PeriodicExecutorFactory PeriodicExecutorFactory
 @inject ClientService ClientService
 @inject IOptions<OsrsWikiValues> OptionsOsrsWiki
 @inject NavigationManager NavigationManager
-@inject PeriodicExecutor PeriodicExecutor
+
+@if (_periodicExecutor is not null)
+{
+    <UpdateProgressCircle LastExecution="_periodicExecutor.LastExecution" />
+}
 
 <RadzenDataGrid @ref="_grid" Count="@_items.Count()" Data="@_items" PageSize="15" PagerAlwaysVisible="true" AllowColumnReorder="true" AllowFiltering="true"
                 FilterPopupRenderMode="PopupRenderMode.OnDemand" AllowColumnResize="true" FilterMode="FilterMode.Advanced" AllowPaging="true" AllowSorting="true"
@@ -100,9 +105,8 @@
     </Columns>
 </RadzenDataGrid>
 
-<h5>@($"Updated: {PeriodicExecutor.LastExecution:HH:mm:ss}")</h5>
-
 @code {
+    private PeriodicExecutor? _periodicExecutor;
     private readonly IEnumerable<int> _pageSizeOptions = new int[] { 10, 15, 25, 50, 100 };
     private RadzenDataGrid<ItemModel>? _grid;
     private IEnumerable<ItemModel> _items = [];
@@ -112,8 +116,9 @@
     protected override void OnInitialized()
     {
         _items = ClientService.GetCachedItems();
-        PeriodicExecutor.JobExecuted += HandleJobExecuted;
-        PeriodicExecutor.StartExecuting();
+        _periodicExecutor = PeriodicExecutorFactory.Create(60_000);
+        _periodicExecutor.JobExecuted += HandleJobExecuted;
+        _periodicExecutor.StartExecuting();
     }
 
     private void HandleJobExecuted(object? sender, JobExecutedEventArgs e)
@@ -130,7 +135,10 @@
 
     public void Dispose()
     {
-        PeriodicExecutor.JobExecuted -= HandleJobExecuted;
-        PeriodicExecutor.Dispose();
+        if (_periodicExecutor is null)
+            return;
+
+        _periodicExecutor.JobExecuted -= HandleJobExecuted;
+        _periodicExecutor.Dispose();
     }
 }

@@ -4,12 +4,11 @@ namespace Infrastructure.Services
 {
     public class JobExecutedEventArgs : EventArgs { }
 
-    public class PeriodicExecutor : IDisposable
+    public class PeriodicExecutor(int interval) : IDisposable
     {
         public event EventHandler<JobExecutedEventArgs>? JobExecuted;
         public DateTime LastExecution;
 
-        private const int INTERVAL = 60_000;
         private System.Timers.Timer? _timer;
         private bool _running;
 
@@ -24,7 +23,7 @@ namespace Infrastructure.Services
             if (_running)
                 return;
 
-            _timer = new System.Timers.Timer(INTERVAL);
+            _timer = new System.Timers.Timer(interval);
             _timer.Elapsed += HandleTimer;
             _timer.AutoReset = true;
             _timer.Enabled = true;
