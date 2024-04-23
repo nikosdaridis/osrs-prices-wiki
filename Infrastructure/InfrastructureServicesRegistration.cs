@@ -9,6 +9,7 @@ namespace Infrastructure
         {
             services.AddScoped<BaseHttpClient>();
             services.AddScoped<ClientService>();
+            services.AddScoped<PeriodicExecutor>();
         }
     }
 }

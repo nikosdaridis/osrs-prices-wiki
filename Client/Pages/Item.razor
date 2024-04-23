@@ -1,0 +1,31 @@
+﻿@page "/{Id:int}/{Name?}"
+
+@inject ClientService ClientService
+@inject NavigationManager NavigationManager
+
+<PageTitle>@_item?.Name - OSRS Live GE Price Utilities</PageTitle>
+
+<h1>@_item?.Name Details</h1>
+<h2>TODO</h2>
+
+<button onclick="@(() => NavigationManager.NavigateTo("/"))">Back</button>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    [Parameter]
+    public string? Name { get; set; }
+
+    private ItemModel? _item;
+
+    protected override Task OnInitializedAsync()
+    {
+        _item = ClientService.GetItem(Id);
+
+        if (_item is null)
+            NavigationManager.NavigateTo("/");
+
+        return base.OnInitializedAsync();
+    }
+}

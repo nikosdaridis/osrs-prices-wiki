@@ -7,11 +7,11 @@ namespace Infrastructure.Services
     public class ClientService(BaseHttpClient httpClient, IOptions<OsrsWikiValues> optionsOsrsWiki)
     {
         private MappingModel[]? _mappingResponse;
-        private Dictionary<string, string>? _volumeResponse;
+        private IDictionary<string, string>? _volumeResponse;
         private LatestModel? _latestResponse;
-        private List<ItemModel> _items = [];
+        private IList<ItemModel> _items = [];
 
-        public async Task<List<ItemModel>> GetItems()
+        public async Task<IList<ItemModel>> GetLatestItems()
         {
             if (_mappingResponse is null or [])
                 await GetMappingAsync();
@@ -25,6 +25,10 @@ namespace Infrastructure.Services
 
             return _items;
         }
+
+        public IList<ItemModel> GetCachedItems() => _items;
+
+        public ItemModel? GetItem(int id) => _items.FirstOrDefault(item => item.Id == id);
 
         private async Task<bool> GetMappingAsync()
         {
@@ -81,7 +85,7 @@ namespace Infrastructure.Services
                 ItemModel item = new()
                 {
                     Id = mapping.Id,
-                    Icon = StringUtility.BuildIconUri(optionsOsrsWiki.Value.OldschoolWikiIconsBaseUri, mapping.Icon, "?7263b"),
+                    Icon = StringUtility.BuildUri(optionsOsrsWiki.Value.OldschoolWikiIconsBaseUri, $"{mapping.Icon}?7263b", '_'),
                     Name = mapping.Name,
                     Examine = mapping.Examine,
                     InstaBuy = latest?.High ?? int.MinValue,

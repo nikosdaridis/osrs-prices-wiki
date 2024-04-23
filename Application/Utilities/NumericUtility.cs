@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Application.Utilities
+﻿namespace Application.Utilities
 {
     public static class NumericUtility
     {

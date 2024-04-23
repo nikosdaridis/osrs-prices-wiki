@@ -23,14 +23,10 @@ namespace Application.Utilities
                 paramIndex < routeParameters.Length ? routeParameters[paramIndex++] ?? match.Value : match.Value);
         }
 
-        public static string BuildIconUri(string? baseUri, string? iconPath, params string?[] routeParameters)
-        {
-            string uri = BuildUri(baseUri, iconPath, routeParameters);
+        public static string BuildUri(string? baseUri, string? routePath, char whitespaceReplacement, params string?[] routeParameters) =>
+             WhitespaceCharacterRegex().Replace(BuildUri(baseUri, routePath, routeParameters), whitespaceReplacement.ToString());
 
-            return WhitespaceCharacterRegex().Replace(uri, "_");
-        }
-
-        private static string BuildUri(string? baseUri, string? path) =>
-            $"{baseUri?.TrimEnd('/')}/{path?.TrimStart('/')}";
+        private static string BuildUri(string? baseUri, string? routePath) =>
+            $"{baseUri?.TrimEnd('/')}/{routePath?.TrimStart('/')}";
     }
 }
