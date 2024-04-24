@@ -32,11 +32,11 @@
     /// </summary>
     public enum TimeUnit
     {
-        Months,
-        Days,
-        Hours,
-        Minutes,
-        Seconds
+        Months = 2_628_000,
+        Days = 86_400,
+        Hours = 3_600,
+        Minutes = 60,
+        Seconds = 1
     }
 
     /// <summary>

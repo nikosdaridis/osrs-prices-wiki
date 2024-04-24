@@ -9,10 +9,10 @@
         {
             (long formattedValue, TimeUnit suffix) = seconds switch
             {
-                _ when seconds >= 2_628_000 => (seconds / 2_628_000, TimeUnit.Months),
-                _ when seconds >= 86_400 => (seconds / 86_400, TimeUnit.Days),
-                _ when seconds >= 3_600 => (seconds / 3_600, TimeUnit.Hours),
-                _ when seconds >= 60 => (seconds / 60, TimeUnit.Minutes),
+                _ when seconds >= (int)TimeUnit.Months => (seconds / (int)TimeUnit.Months, TimeUnit.Months),
+                _ when seconds >= (int)TimeUnit.Days => (seconds / (int)TimeUnit.Days, TimeUnit.Days),
+                _ when seconds >= (int)TimeUnit.Hours => (seconds / (int)TimeUnit.Hours, TimeUnit.Hours),
+                _ when seconds >= (int)TimeUnit.Minutes => (seconds / (int)TimeUnit.Minutes, TimeUnit.Minutes),
                 _ => (seconds, TimeUnit.Seconds)
             };
             return $"{formattedValue} {suffix.ToString()[..^1].ToLower()}{(formattedValue == 1 ? "" : "s")}";

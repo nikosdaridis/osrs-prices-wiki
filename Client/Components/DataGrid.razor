@@ -82,19 +82,26 @@
                 <RadzenText Text=@NumericUtility.FormatNumber(item.Limit, "0") />
             </Template>
         </CustomDataGridColumn>
-        <RadzenDataGridColumn Property=InstaBuyTime Title="Latest Insta Buy" Width="70px" MinWidth="70px">
+        <RadzenDataGridColumn FilterValue=_instaBuyTimeFilterValue Property=InstaBuyTime Title="Latest Insta Buy" Width="70px" MinWidth="70px"
+                              FilterOperator=@(_instaBuyTimeFilterDirection == TimeDirection.Before ? FilterOperator.LessThanOrEquals : FilterOperator.GreaterThanOrEquals)>
             <Template Context=item>
                 <RadzenText Style=@($"color: {CSSHelper.GetColor(nameof(item.InstaBuyTime), item.InstaBuyTime)}")
                             Text=@($"{NumericUtility.FormatSeconds(item.InstaBuyTime)} ago") />
             </Template>
+            <FilterTemplate>
+                <CustomTimeFilterTemplate @bind-FilterValue=_instaBuyTimeFilterValue @bind-TimeDirection=_instaBuyTimeFilterDirection
+                                          @bind-TimeNumber=_instaBuyTimeFilterNumber @bind-TimeUnit=_instaBuyTimeFilterUnit />
+            </FilterTemplate>
         </RadzenDataGridColumn>
-        <RadzenDataGridColumn Property=InstaSellTime Title="Latest Insta Sell" Width="70px" MinWidth="70px">
+        <RadzenDataGridColumn FilterValue=_instaSellTimeFilterValue Property=InstaSellTime Title="Latest Insta Sell" Width="70px" MinWidth="70px"
+                              FilterOperator=@(_instaSellTimeFilterDirection == TimeDirection.Before ? FilterOperator.LessThanOrEquals : FilterOperator.GreaterThanOrEquals)>
             <Template Context=item>
                 <RadzenText Style=@($"color: {CSSHelper.GetColor(nameof(item.InstaSellTime), item.InstaSellTime)}")
                             Text=@($"{NumericUtility.FormatSeconds(item.InstaSellTime)} ago") />
             </Template>
             <FilterTemplate>
-                <CustomTimeFilterTemplate TimeDirection=_instaSellTimeFilterDirection TimeNumber=_instaSellTimeFilterNumber TimeUnit=_instaSellTimeFilterUnit />
+                <CustomTimeFilterTemplate @bind-FilterValue=_instaSellTimeFilterValue @bind-TimeDirection=_instaSellTimeFilterDirection
+                                          @bind-TimeNumber=_instaSellTimeFilterNumber @bind-TimeUnit=_instaSellTimeFilterUnit />
             </FilterTemplate>
         </RadzenDataGridColumn>
         <CustomDataGridColumn Property=Value Title=Value Width="50px" MinWidth="50px" Visible=false
@@ -137,8 +144,14 @@
     private RadzenDataGrid<ItemModel> _grid = new();
     private IEnumerable<ItemModel> _items = [];
 
-    private long? _instaSellTimeFilterNumber;
+    private long? _instaBuyTimeFilterValue = (int)TimeUnit.Hours;
+    private TimeDirection _instaBuyTimeFilterDirection = TimeDirection.Before;
+    private long? _instaBuyTimeFilterNumber = 1;
+    private TimeUnit _instaBuyTimeFilterUnit = TimeUnit.Hours;
+
+    private long? _instaSellTimeFilterValue = (int)TimeUnit.Hours;
     private TimeDirection _instaSellTimeFilterDirection = TimeDirection.Before;
+    private long? _instaSellTimeFilterNumber = 1;
     private TimeUnit _instaSellTimeFilterUnit = TimeUnit.Hours;
 
     protected override void OnInitialized()
@@ -152,12 +165,12 @@
     private void HandleJobExecuted(object? sender, JobExecutedEventArgs e)
     {
         InvokeAsync(async () =>
-       {
-           int pageBeforeReload = _grid.CurrentPage;
-           _items = await ClientService.GetLatestItems();
-           StateHasChanged();
-           await _grid.GoToPage(pageBeforeReload, true);
-       });
+           {
+               int pageBeforeReload = _grid.CurrentPage;
+               _items = await ClientService.GetLatestItems();
+               StateHasChanged();
+               await _grid.GoToPage(pageBeforeReload, true);
+           });
     }
 
     private void NavigateToItem(ItemModel item) => NavigationManager.NavigateTo($"/{StringUtility.BuildUri(item.Id.ToString(), item.Name, '-')}");
