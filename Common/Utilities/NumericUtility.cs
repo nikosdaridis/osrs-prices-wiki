@@ -1,4 +1,4 @@
-﻿namespace Application.Utilities
+﻿namespace Common.Utilities
 {
     public static class NumericUtility
     {
@@ -7,16 +7,15 @@
         /// </summary>
         public static string FormatSeconds(long seconds)
         {
-            (long formattedValue, string suffix) = seconds switch
+            (long formattedValue, TimeUnit suffix) = seconds switch
             {
-                _ when seconds >= 2_628_000 => (seconds / 2_628_000, "month"),
-                _ when seconds >= 86_400 => (seconds / 86_400, "day"),
-                _ when seconds >= 3_600 => (seconds / 3_600, "hour"),
-                _ when seconds >= 60 => (seconds / 60, "minute"),
-                _ => (seconds, "second")
+                _ when seconds >= 2_628_000 => (seconds / 2_628_000, TimeUnit.Months),
+                _ when seconds >= 86_400 => (seconds / 86_400, TimeUnit.Days),
+                _ when seconds >= 3_600 => (seconds / 3_600, TimeUnit.Hours),
+                _ when seconds >= 60 => (seconds / 60, TimeUnit.Minutes),
+                _ => (seconds, TimeUnit.Seconds)
             };
-
-            return $"{formattedValue} {suffix}{(formattedValue == 1 ? "" : "s")}";
+            return $"{formattedValue} {suffix.ToString()[..^1].ToLower()}{(formattedValue == 1 ? "" : "s")}";
         }
 
         /// <summary>

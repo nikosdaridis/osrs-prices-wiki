@@ -1,4 +1,4 @@
-﻿namespace Infrastructure.Services
+﻿namespace Application.Services
 {
     public class PeriodicExecutorFactory
     {

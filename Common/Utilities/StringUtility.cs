@@ -1,6 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 
-namespace Application.Utilities
+namespace Common.Utilities
 {
     public static partial class StringUtility
     {

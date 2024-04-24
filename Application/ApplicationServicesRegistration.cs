@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Application.Services;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Application
 {
@@ -6,7 +7,7 @@ namespace Application
     {
         public static void AddApplicationServices(IServiceCollection services)
         {
-
+            services.AddSingleton<PeriodicExecutorFactory>();
         }
     }
 }

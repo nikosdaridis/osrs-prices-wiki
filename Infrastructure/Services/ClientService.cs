@@ -1,5 +1,6 @@
 ﻿using Application.Models;
-using Application.Utilities;
+using Common;
+using Common.Utilities;
 using Microsoft.Extensions.Options;
 
 namespace Infrastructure.Services
@@ -77,10 +78,7 @@ namespace Infrastructure.Services
             {
                 _latestResponse.Data.TryGetValue(mapping.Id.ToString(), out LatestData? latest);
                 _volumeResponse.TryGetValue(mapping.Name ?? "", out string? volumeString);
-
-                int volume = 0;
-                if (!string.IsNullOrWhiteSpace(volumeString))
-                    volume = int.Parse(volumeString);
+                _ = int.TryParse(volumeString, out int volume);
 
                 ItemModel item = new()
                 {
@@ -97,10 +95,10 @@ namespace Infrastructure.Services
                     Value = mapping.Value,
                     HighAlch = mapping.HighAlch,
                     LowAlch = mapping.LowAlch,
-                    Members = mapping.Members,
+                    Accessibility = mapping.Members ? Accessibility.Members : Accessibility.FreeToPlay,
                 };
 
-                item.Tax = item.InstaBuy >= 100 ? Math.Min(item.InstaBuy / 100, 5000000) : 0;
+                item.Tax = item.InstaBuy >= 100 ? Math.Min((int)item.InstaBuy / 100, 5000000) : 0;
                 item.Margin = item.InstaBuy - item.InstaSell - item.Tax;
                 item.MarginXVolume = item.Margin * volume;
                 item.RoiPercentage = item.InstaSell != 0 ? (float)item.Margin / item.InstaSell * 100 : 0;

@@ -1,0 +1,42 @@
+﻿<div class="grid gap-2 m-[10px] w-[200px]">
+    <RadzenText Style="font-size: 14px;font-weight: 600; margin-top: 5px;" Text="Filter" />
+    <RadzenDropDown @bind-Value=@TimeDirection
+                    Data=@(Enum.GetValues(typeof(TimeDirection)).Cast<TimeDirection>().Select(timeDirection => timeDirection)) />
+
+    <div class="flex gap-6 justify-around">
+        <RadzenNumeric @bind-Value=TimeNumber ShowUpDown=true />
+        <RadzenDropDown @bind-Value=@TimeUnit
+                        Data=@(Enum.GetValues(typeof(TimeUnit)).Cast<TimeUnit>().Select(timeUnit => timeUnit)) />
+    </div>
+
+    <div class="flex gap-[85px] justify-around mt-[14px]">
+        <RadzenButton Style="background-color: #3b9fd5;" Text=Clear Click=@ClearFilters />
+        <RadzenButton Text=Apply Click=@ApplyFilters />
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public TimeDirection TimeDirection { get; set; }
+
+    [Parameter]
+    public long? TimeNumber { get; set; }
+
+    [Parameter]
+    public TimeUnit TimeUnit { get; set; }
+
+
+    private void ClearFilters()
+    {
+        TimeDirection = TimeDirection.Before;
+        TimeNumber = null;
+        TimeUnit = TimeUnit.Hours;
+        StateHasChanged();
+    }
+
+    private void ApplyFilters()
+    {
+        // TODO
+        StateHasChanged();
+    }
+}

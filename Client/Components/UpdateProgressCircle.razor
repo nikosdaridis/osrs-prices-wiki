@@ -3,9 +3,9 @@
 @inject PeriodicExecutorFactory PeriodicExecutorFactory
 
 <div class="flex justify-end">
-    <RadzenProgressBarCircular Style="font-size: 10px;" ShowValue="true" Size="ProgressBarCircularSize.Small"
-                               ProgressBarStyle="ProgressBarStyle.Primary" Mode="ProgressBarMode.Determinate"
-                               Value="@_scaledElapsedSeconds">
+    <RadzenProgressBarCircular Style="font-size: 10px;" ShowValue=true Size=ProgressBarCircularSize.Small
+                               ProgressBarStyle=ProgressBarStyle.Primary Mode=ProgressBarMode.Determinate
+                               Value=@_scaledElapsedSeconds>
         <Template>@(60 - Math.Floor(_scaledElapsedSeconds * 0.6))</Template>
     </RadzenProgressBarCircular>
 </div>
@@ -19,7 +19,7 @@
 
     protected override void OnParametersSet()
     {
-        _periodicExecutor = PeriodicExecutorFactory.Create(1_000);
+        _periodicExecutor = PeriodicExecutorFactory.Create(200);
         _periodicExecutor.JobExecuted += HandleJobExecuted;
         _periodicExecutor.StartExecuting();
 

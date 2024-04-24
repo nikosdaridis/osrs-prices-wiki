@@ -1,6 +1,6 @@
 ﻿using System.Timers;
 
-namespace Infrastructure.Services
+namespace Application.Services
 {
     public class JobExecutedEventArgs : EventArgs { }
 
