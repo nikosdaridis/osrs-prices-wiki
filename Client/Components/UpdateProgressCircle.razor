@@ -2,13 +2,11 @@
 
 @inject PeriodicExecutorFactory PeriodicExecutorFactory
 
-<div class="flex justify-end">
-    <RadzenProgressBarCircular Style="font-size: 10px;" ShowValue=true Size=ProgressBarCircularSize.Small
-                               ProgressBarStyle=ProgressBarStyle.Primary Mode=ProgressBarMode.Determinate
-                               Value=@_scaledElapsedSeconds>
-        <Template>@(60 - Math.Floor(_scaledElapsedSeconds * 0.6))</Template>
-    </RadzenProgressBarCircular>
-</div>
+<RadzenProgressBarCircular Style="font-size: 11px;" ShowValue=true Size=ProgressBarCircularSize.Small
+                           ProgressBarStyle=ProgressBarStyle.Primary Mode=ProgressBarMode.Determinate
+                           Value=@_scaledElapsedSeconds>
+    <Template>@(60 - Math.Floor(_scaledElapsedSeconds * 0.6))</Template>
+</RadzenProgressBarCircular>
 
 @code {
     [Parameter]

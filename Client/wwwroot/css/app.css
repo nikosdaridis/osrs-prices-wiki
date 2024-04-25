@@ -5,8 +5,12 @@
     font-style: normal;
 }
 
+:root {
+    --highlight-color: #ff6d41;
+}
+
 html, body {
-    font-family: 'Poppins', Helvetica, Arial, sans-serif;
+    font-family: 'Poppins', Arial, sans-serif;
 }
 
 h1:focus {
@@ -70,4 +74,30 @@ a, .btn-link {
 
     .blazor-error-boundary::after {
         content: "An error has occurred."
+    }
+
+.rz-column-title:has(> span.rzi-sort-asc),
+.rz-column-title:has(> span.rzi-sort-desc) {
+    color: var(--highlight-color) !important;
+}
+
+.rzi-sort-asc {
+    color: #00ff00 !important;
+}
+
+.rzi-sort-desc {
+    color: #fa0000 !important;
+}
+
+.link {
+    text-decoration: none !important;
+}
+
+    .link img:hover,
+    .link p:hover {
+        cursor: pointer;
+    }
+
+    .link p:hover {
+        color: var(--highlight-color);
     }

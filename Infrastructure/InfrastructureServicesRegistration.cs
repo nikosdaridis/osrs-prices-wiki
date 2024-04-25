@@ -7,8 +7,8 @@ namespace Infrastructure
     {
         public static void AddInfrastructureServices(IServiceCollection services)
         {
-            services.AddScoped<BaseHttpClient>();
-            services.AddScoped<ClientService>();
+            services.AddSingleton<BaseHttpClient>();
+            services.AddSingleton<ClientService>();
         }
     }
 }

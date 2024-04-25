@@ -1,0 +1,43 @@
+﻿@inject IJSRuntime JSRuntime
+
+@if (Filter is null)
+    return;
+
+<div class="grid gap-2 m-[10px] w-[200px]">
+    <RadzenText Style="font-size: 14px;font-weight: 600; margin-top: 5px;" Text="Filter" />
+    <RadzenDropDown @bind-Value=Filter.Direction
+                    Data=@(Enum.GetValues(typeof(TimeDirection)).Cast<TimeDirection>().Select(timeDirection => timeDirection)) />
+
+    <div class="flex gap-6 justify-around">
+        <RadzenNumeric Min=1 @bind-Value=Filter.Number ShowUpDown=true />
+        <RadzenDropDown @bind-Value=Filter.Unit
+                        Data=@(Enum.GetValues(typeof(TimeUnit)).Cast<TimeUnit>().Select(timeUnit => timeUnit)) />
+    </div>
+
+    <div class="flex gap-[85px] justify-around mt-[14px]">
+        <RadzenButton Style="background-color: #3b9fd5;" Text=Clear Click=ClearFilter />
+        <RadzenButton Text=Apply Click=UpdateFilterValues />
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public TimeFilter<long?>? Filter { get; set; }
+    [Parameter]
+    public EventCallback<TimeFilter<long?>> FilterChanged { get; set; }
+
+    private async Task ClearFilter()
+    {
+        Filter!.Direction = TimeDirection.Before;
+        Filter.Number = null;
+        Filter.Unit = TimeUnit.Hours;
+        await UpdateFilterValues();
+    }
+
+    private async Task UpdateFilterValues()
+    {
+        Filter!.Value = Filter.Number * (int)Filter.Unit;
+        await FilterChanged.InvokeAsync(Filter);
+        await JSRuntime.InvokeVoidAsync("Radzen.closeAllPopups");
+    }
+}
