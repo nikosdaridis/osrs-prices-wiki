@@ -2,22 +2,14 @@
 
 namespace Infrastructure.Services
 {
-    public class BaseHttpClient
+    public class BaseHttpClient(HttpClient httpClient) : IBaseHttpClient
     {
-        private readonly HttpClient _httpClient;
-
-        public BaseHttpClient(HttpClient httpClient)
-        {
-            _httpClient = httpClient;
-            _httpClient.DefaultRequestHeaders.Add("User-Agent", "osrsprices.wiki");
-        }
-
         public Task<TResponse?> GetAsync<TResponse>(string requestUri) =>
             SendAsync<TResponse?>(new HttpRequestMessage(HttpMethod.Get, requestUri));
 
-        private async Task<TResponse?> SendAsync<TResponse>(HttpRequestMessage request)
+        protected async Task<TResponse?> SendAsync<TResponse>(HttpRequestMessage request)
         {
-            using HttpResponseMessage response = await _httpClient.SendAsync(request);
+            using HttpResponseMessage response = await httpClient.SendAsync(request);
 
             if (!response.IsSuccessStatusCode)
                 return default;

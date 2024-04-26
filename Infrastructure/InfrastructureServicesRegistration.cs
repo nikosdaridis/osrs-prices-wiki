@@ -7,7 +7,8 @@ namespace Infrastructure
     {
         public static void AddInfrastructureServices(IServiceCollection services)
         {
-            services.AddSingleton<BaseHttpClient>();
+            services.AddSingleton<OSRSWikiHttpClient>();
+            services.AddSingleton<OldschoolWikiHttpClient>();
             services.AddSingleton<ClientService>();
         }
     }

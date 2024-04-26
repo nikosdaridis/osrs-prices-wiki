@@ -5,7 +5,7 @@ using Microsoft.Extensions.Options;
 
 namespace Infrastructure.Services
 {
-    public class ClientService(BaseHttpClient httpClient, IOptions<OsrsWikiValues> optionsOsrsWiki)
+    public class ClientService(OSRSWikiHttpClient osrsWikiHttpClient, OldschoolWikiHttpClient oldschoolWikiHttpClient, IOptions<OsrsWikiValues> optionsOsrsWiki)
     {
         private MappingModel[]? _mappingResponse;
         private IDictionary<string, string>? _volumeResponse;
@@ -21,7 +21,6 @@ namespace Infrastructure.Services
                 await GetVolumeAsync();
 
             await GetLatestAsync();
-
             CombineItemsData();
 
             return _items;
@@ -33,7 +32,7 @@ namespace Infrastructure.Services
 
         private async Task<bool> GetMappingAsync()
         {
-            MappingModel[]? mappingResponse = await httpClient.GetAsync<MappingModel[]>(
+            MappingModel[]? mappingResponse = await osrsWikiHttpClient.GetAsync<MappingModel[]>(
                 StringUtility.BuildUri(optionsOsrsWiki.Value.OSRSPricesWikiBaseUri, optionsOsrsWiki.Value.Mapping));
 
             if (mappingResponse is null or [])
@@ -43,27 +42,27 @@ namespace Infrastructure.Services
             return true;
         }
 
-        private async Task<bool> GetLatestAsync()
-        {
-            LatestModel? latestResponse = await httpClient.GetAsync<LatestModel>(
-                StringUtility.BuildUri(optionsOsrsWiki.Value.OSRSPricesWikiBaseUri, optionsOsrsWiki.Value.Latest));
-
-            if (latestResponse is null)
-                return false;
-
-            _latestResponse = latestResponse;
-            return true;
-        }
-
         private async Task<bool> GetVolumeAsync()
         {
-            Dictionary<string, string>? volumeResponse = await httpClient.GetAsync<Dictionary<string, string>>(
+            Dictionary<string, string>? volumeResponse = await oldschoolWikiHttpClient.GetAsync<Dictionary<string, string>>(
                 StringUtility.BuildUri(optionsOsrsWiki.Value.OldschoolWikiBaseUri, optionsOsrsWiki.Value.Volume));
 
             if (volumeResponse is null)
                 return false;
 
             _volumeResponse = volumeResponse;
+            return true;
+        }
+
+        private async Task<bool> GetLatestAsync()
+        {
+            LatestModel? latestResponse = await osrsWikiHttpClient.GetAsync<LatestModel>(
+                StringUtility.BuildUri(optionsOsrsWiki.Value.OSRSPricesWikiBaseUri, optionsOsrsWiki.Value.Latest));
+
+            if (latestResponse is null)
+                return false;
+
+            _latestResponse = latestResponse;
             return true;
         }
 

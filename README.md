@@ -6,6 +6,10 @@
   OSRS Live GE Prices and Utilities
 </p>
 
+<div align="center">
+  <img alt="Screenshot" height="800" src=https://github.com/nikosdaridis/osrs-prices-wiki/raw/main/Screenshot1.png>
+</div>
+
 ## 🛠 Installation
 
 1. Node.js, npm and Typescript has to be installed to build the project
