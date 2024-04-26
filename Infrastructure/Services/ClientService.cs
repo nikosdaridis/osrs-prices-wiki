@@ -99,8 +99,9 @@ namespace Infrastructure.Services
 
                 item.Tax = item.InstaBuy >= 100 ? Math.Min((int)item.InstaBuy / 100, 5000000) : 0;
                 item.Margin = item.InstaBuy - item.InstaSell - item.Tax;
+                item.MarginXLimit = item.Margin * item.Limit;
                 item.MarginXVolume = item.Margin * volume;
-                item.RoiPercentage = item.InstaSell != 0 ? (float)item.Margin / item.InstaSell * 100 : 0;
+                item.RoiPercentage = Math.Round(item.InstaSell != 0 ? (float)item.Margin / item.InstaSell * 100 : 0, 2);
 
                 if (item.InstaBuy != int.MinValue && item.InstaSell != int.MinValue)
                     _items.Add(item);

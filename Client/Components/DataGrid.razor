@@ -63,7 +63,7 @@
                               FilterOperator=FilterOperator.GreaterThanOrEquals SecondFilterOperator=FilterOperator.LessThanOrEquals>
             <Template Context=item>
                 <RadzenText Style=@($"color: {CSSHelper.GetColor(nameof(item.RoiPercentage), item.RoiPercentage)}")
-                            Text=@($"{item.RoiPercentage:F1}%") />
+                            Text=@(item.RoiPercentage == Math.Floor(item.RoiPercentage) ? $"{item.RoiPercentage:F0}%" : $"{item.RoiPercentage:F1}%") />
             </Template>
         </CustomDataGridColumn>
         <CustomDataGridColumn Property=Volume Title=Volume Width="50px" MinWidth="50px" FilterValue=_volumeFilter.Value
@@ -93,10 +93,17 @@
                 <TimeFilterTemplate @bind-Filter=_instaSellTimeFilter />
             </FilterTemplate>
         </RadzenDataGridColumn>
-        <CustomDataGridColumn Property=Limit Title=Limit Width="50px" MinWidth="50px"
+        <CustomDataGridColumn Property=Limit Title=Limit Width="50px" MinWidth="50px" Visible=false
                               FilterOperator=FilterOperator.GreaterThanOrEquals SecondFilterOperator=FilterOperator.LessThanOrEquals>
             <Template Context=item>
                 <RadzenText Text=@NumericUtility.FormatNumber(item.Limit, "0") />
+            </Template>
+        </CustomDataGridColumn>
+        <CustomDataGridColumn Property=MarginXLimit Title="Margin x Limit" Width="60px" MinWidth="60px"
+                              FilterOperator=FilterOperator.GreaterThanOrEquals SecondFilterOperator=FilterOperator.LessThanOrEquals>
+            <Template Context=item>
+                <RadzenText Style=@($"color: {CSSHelper.GetColor(nameof(item.MarginXLimit), item.MarginXLimit)}")
+                            Text=@NumericUtility.FormatNumber(item.MarginXLimit) />
             </Template>
         </CustomDataGridColumn>
         <CustomDataGridColumn Property=MarginXVolume Title="Margin x Volume" Width="60px" MinWidth="60px"
@@ -106,19 +113,19 @@
                             Text=@NumericUtility.FormatNumber(item.MarginXVolume) />
             </Template>
         </CustomDataGridColumn>
-        <CustomDataGridColumn Property=Value Title=Value Width="50px" MinWidth="50px" Visible=false
+        <CustomDataGridColumn Property=Value Title=Value Width="50px" MinWidth="40px" Visible=false
                               FilterOperator=FilterOperator.GreaterThanOrEquals SecondFilterOperator=FilterOperator.LessThanOrEquals>
             <Template Context=item>
                 <RadzenText Text=@NumericUtility.FormatNumber(item.Value, "0") />
             </Template>
         </CustomDataGridColumn>
-        <CustomDataGridColumn Property=HighAlch Title=HighAlch Width="60px" MinWidth="60px" Visible=false
+        <CustomDataGridColumn Property=HighAlch Title=HighAlch Width="60px" MinWidth="50px" Visible=false
                               FilterOperator=FilterOperator.GreaterThanOrEquals SecondFilterOperator=FilterOperator.LessThanOrEquals>
             <Template Context=item>
                 <RadzenText Text=@NumericUtility.FormatNumber(item.HighAlch, "0") />
             </Template>
         </CustomDataGridColumn>
-        <CustomDataGridColumn Property=LowAlch Title=LowAlch Width="60px" MinWidth="60px" Visible=false
+        <CustomDataGridColumn Property=LowAlch Title=LowAlch Width="60px" MinWidth="50px" Visible=false
                               FilterOperator=FilterOperator.GreaterThanOrEquals SecondFilterOperator=FilterOperator.LessThanOrEquals>
             <Template Context=item>
                 <RadzenText Text=@NumericUtility.FormatNumber(item.LowAlch, "0") />

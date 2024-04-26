@@ -12,6 +12,7 @@ namespace Application.Models
         public long InstaSell { get; set; }
         public long Margin { get; set; }
         public double RoiPercentage { get; set; }
+        public long MarginXLimit { get; set; }
         public long MarginXVolume { get; set; }
         public long Volume { get; set; }
         public int Limit { get; set; }

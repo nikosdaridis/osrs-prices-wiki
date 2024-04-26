@@ -12,7 +12,7 @@ namespace Application.Helpers
         {
             { "Margin", (new double[] { -1_000_000, -100_000, -10_000, -1, 1_000, 10_000, 100_000, 1_000_000 }, Order.Ascending, ColorRange.RedToGreen) },
             { "RoiPercentage", (new double[] { -10, -5, -2.5, -0.001, 0, 0.1, 1, 3 }, Order.Ascending, ColorRange.RedToGreen) },
-            { "MarginXVolume",(new double[] { -10_000_000, -1_000_000, -100_000, -1, 10_000, 100_000, 1_000_000, 10_000_000 }, Order.Ascending, ColorRange.RedToGreen) },
+            { "MarginX",(new double[] { -10_000_000, -1_000_000, -100_000, -1, 10_000, 100_000, 1_000_000, 10_000_000 }, Order.Ascending, ColorRange.RedToGreen) },
             { "Volume", (new double[] { 1_000, 10_000, 100_000, 1_000_000 }, Order.Ascending, ColorRange.WhiteToGreen) },
             { "InstaTime", (new double[] { 2_628_000, 860_400, 86_400, 43_200, 7_200, 3_600, 1_800, 600 }, Order.Descending, ColorRange.RedToGreen) }
         };
@@ -25,6 +25,7 @@ namespace Application.Helpers
             string key = type switch
             {
                 "InstaBuyTime" or "InstaSellTime" => "InstaTime",
+                "MarginXLimit" or "MarginXVolume" => "MarginX",
                 _ => type
             };
 
