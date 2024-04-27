@@ -15,8 +15,8 @@
     </div>
 
     <div class="flex gap-[85px] justify-around mt-[14px]">
-        <RadzenButton Style="background-color: #3b9fd5;" Text=Clear Click=ClearFilter />
-        <RadzenButton Text=Apply Click=UpdateFilterValues />
+        <RadzenButton Style="background-color: #3b9fd5;" Text=Clear Click=ClearFilterAsync />
+        <RadzenButton Text=Apply Click=UpdateFilterAsync />
     </div>
 </div>
 
@@ -26,18 +26,24 @@
     [Parameter]
     public EventCallback<TimeFilter<long?>> FilterChanged { get; set; }
 
-    private async Task ClearFilter()
+    [Parameter]
+    public RadzenDataGrid<ItemModel>? Grid { get; set; }
+
+    private async Task ClearFilterAsync()
     {
         Filter!.Direction = TimeDirection.Before;
         Filter.Number = null;
         Filter.Unit = TimeUnit.Hours;
-        await UpdateFilterValues();
+        await UpdateFilterAsync();
     }
 
-    private async Task UpdateFilterValues()
+    private async Task UpdateFilterAsync()
     {
         Filter!.Value = Filter.Number * (int)Filter.Unit;
         await FilterChanged.InvokeAsync(Filter);
         await JSRuntime.InvokeVoidAsync("Radzen.closeAllPopups");
+
+        if (Grid is not null)
+            await Grid.GoToPage(0, true);
     }
 }

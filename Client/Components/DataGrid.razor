@@ -12,7 +12,7 @@
 }
 
 <RadzenDataGrid @ref=_grid Count=@_items.Count() Data=@_items PageSize=25 PagerAlwaysVisible=true AllowColumnReorder=true AllowFiltering=true
-                FilterPopupRenderMode=PopupRenderMode.OnDemand AllowColumnResize=true FilterMode=FilterMode.Advanced AllowPaging=true AllowSorting=true
+                FilterPopupRenderMode=PopupRenderMode.OnDemand AllowColumnResize=true FilterMode=Radzen.FilterMode.Advanced AllowPaging=true AllowSorting=true
                 ColumnWidth="100px" LogicalFilterOperator=LogicalFilterOperator.And PagerPosition=PagerPosition.TopAndBottom
                 PagerHorizontalAlign=HorizontalAlign.Center FilterCaseSensitivity=FilterCaseSensitivity.CaseInsensitive AllowColumnPicking=true
                 PageSizeOptions=_pageSizeOptions PageSizeText="" TItem=ItemModel FilterCleared=FilterCleared>
@@ -80,7 +80,7 @@
                             Text=@($"{NumericUtility.FormatSeconds(item.InstaBuyTime)} ago") />
             </Template>
             <FilterTemplate>
-                <TimeFilterTemplate @bind-Filter=_instaBuyTimeFilter />
+                <TimeFilterTemplate @bind-Filter=_instaBuyTimeFilter Grid=_grid />
             </FilterTemplate>
         </RadzenDataGridColumn>
         <RadzenDataGridColumn Property=InstaSellTime Title="Latest Insta Sell" Width="70px" MinWidth="70px" FilterValue=_instaSellTimeFilter.Value
@@ -90,7 +90,7 @@
                             Text=@($"{NumericUtility.FormatSeconds(item.InstaSellTime)} ago") />
             </Template>
             <FilterTemplate>
-                <TimeFilterTemplate @bind-Filter=_instaSellTimeFilter />
+                <TimeFilterTemplate @bind-Filter=_instaSellTimeFilter Grid=_grid />
             </FilterTemplate>
         </RadzenDataGridColumn>
         <CustomDataGridColumn Property=Limit Title=Limit Width="50px" MinWidth="50px" Visible=false

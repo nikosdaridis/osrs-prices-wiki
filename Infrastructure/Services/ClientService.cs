@@ -30,6 +30,10 @@ namespace Infrastructure.Services
 
         public ItemModel? GetItem(int id) => _items.FirstOrDefault(item => item.Id == id);
 
+        public async Task<TimeSeriesModel?> GetTimeseriesAsync(string timestep, int id) =>
+            await osrsWikiHttpClient.GetAsync<TimeSeriesModel>(
+                StringUtility.BuildUri(optionsOsrsWiki.Value.OSRSPricesWikiBaseUri, optionsOsrsWiki.Value.Timeseries, timestep, id.ToString()));
+
         private async Task<bool> GetMappingAsync()
         {
             MappingModel[]? mappingResponse = await osrsWikiHttpClient.GetAsync<MappingModel[]>(
