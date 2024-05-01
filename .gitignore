@@ -399,5 +399,5 @@ FodyWeavers.xsd
 
 
 # Compiled JavaScript and Tailwind
-app.js
+Client/wwwroot/**/*.js
 tailwind-app.css

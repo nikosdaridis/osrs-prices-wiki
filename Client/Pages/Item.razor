@@ -11,9 +11,9 @@
 <h1>@_item?.Name - @_item?.Id</h1>
 <h2>TODO</h2>
 
-@if (_item is not null && _timeSeries?["5m"]?.Data is not null or [])
+@if (_item is not null && _activeTimeSeries is not null)
 {
-    <ItemChart TimeSeries=_timeSeries />
+    <ItemChart TimeSeries=_activeTimeSeries />
 }
 
 <a href="/">Back</a>
@@ -27,7 +27,8 @@
 
     private PeriodicExecutor? _periodicExecutor;
     private ItemModel? _item;
-    private Dictionary<string, TimeSeriesModel?> _timeSeries = new() { { "5m", new() }, { "1h", new() } };
+    private Dictionary<string, TimeSeriesModel?> _timeSeries = new() { { "5m", new() }, { "1h", new() }, { "6h", new() }, { "24h", new() } };
+    private TimeSeriesModel? _activeTimeSeries;
 
     protected override async Task OnInitializedAsync()
     {
@@ -39,7 +40,7 @@
         if (_item is null)
             NavigationManager.NavigateTo("/");
 
-        _periodicExecutor = PeriodicExecutorFactory.Create(300_000);
+        _periodicExecutor = PeriodicExecutorFactory.Create(60_000);
         _periodicExecutor.JobExecuted += HandleJobExecuted;
         _periodicExecutor.StartExecuting();
 
@@ -51,7 +52,7 @@
         InvokeAsync(async () =>
            {
                _timeSeries["5m"] = await ClientService.GetTimeseriesAsync("5m", _item!.Id);
-               var test = _timeSeries["5m"];
+               _activeTimeSeries = _timeSeries["5m"];
                StateHasChanged();
            });
     }

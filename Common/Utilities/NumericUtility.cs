@@ -19,6 +19,23 @@
         }
 
         /// <summary>
+        /// Formats seconds to relative datetime (Today time, Yesterday time, Last Date time, Date time)
+        /// </summary>
+        public static string FormatSecondsToRelativeDateTime(long seconds)
+        {
+            DateTime targetDateTime = DateTime.UnixEpoch.AddSeconds(seconds).ToLocalTime();
+            int daysDifference = (int)(DateTime.Now.Date - targetDateTime.Date).TotalDays;
+            
+            return daysDifference switch
+            {
+                0 => $"Today {targetDateTime:HH:mm}",
+                1 => $"Yesterday {targetDateTime:HH:mm}",
+                _ when daysDifference > 1 && daysDifference < 7 => $"Last {targetDateTime:dddd} {targetDateTime:HH:mm}",
+                _ => $"{targetDateTime:dd/MM/yy H:mm}"
+            };
+        }
+
+        /// <summary>
         /// Formats number to readable format (billions, millions, thousands)
         /// </summary>
         public static string FormatNumber(long number, string? format = null)

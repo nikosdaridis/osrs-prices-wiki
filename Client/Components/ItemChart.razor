@@ -1,101 +1,118 @@
-﻿<ELine Option=_options style="height: 500px;"></ELine>
+﻿<ELine Option=_chartOption style="height: 500px;"></ELine>
+
+@inject HttpClient HttpClient
 
 @code {
     [Parameter]
-    public Dictionary<string, TimeSeriesModel?>? TimeSeries { get; set; }
+    public TimeSeriesModel? TimeSeries { get; set; }
 
-    private EChartsOption<OptionsLine.Line>? _options;
+    private EChartsOption<OptionsLine.Line>? _chartOption;
+    private string? _rawJsTooltipFormatter;
+    private string? _rawJsYAxisLabelFormatter;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         if (TimeSeries is null)
             return;
 
-        _options = new()
+        _rawJsTooltipFormatter = (await HttpClient.GetStringAsync("eChartsTooltipFormatter.js")).Replace("\"use strict\";", "");
+        _rawJsYAxisLabelFormatter = (await HttpClient.GetStringAsync("eChartsYAxisLabelFormatter.js")).Replace("\"use strict\";", "");
+
+        _chartOption = new()
             {
                 Animation = true,
-                Legend = new(){
+                Legend = new()
+                {
                     Top = 10,
-                    Data = new [] { "Insta Buy Price", "Insta Sell Price", "Insta Buy Volume", "Insta Sell Volume" },
+                    Data = new[] { "Insta Buy Price", "Insta Sell Price", "Insta Buy Volume", "Insta Sell Volume" },
                     TextStyle = new() { Color = "#ffffff" }
                 },
-                Tooltip = new(){
+                Tooltip = new()
+                {
                     Trigger = TooltipTrigger.Axis,
                     AxisPointer = new() { Type = AxisPointerType.Shadow },
                     BorderColor = "#ccc",
                     Padding = 10,
-                    TextStyle = new(){ Color = "#000"}
+                    Formatter = new JFunc() { RAW = _rawJsTooltipFormatter }
                 },
-                AxisPointer = new() { 
+                AxisPointer = new()
+                {
                     Link = new() { XAxisIndex = "all" },
                     Label = new() { BackgroundColor = "#ffffff" }
                 },
                 Grid = [
                     new() {Left = "10%", Right = "8%", Height = "40%"},
-                    new() {Left = "10%", Right = "8%", Top = "63%", Height = "16%"},
-                    new() {Left = "10%", Right = "8%", Top = "79%", Height = "16%"},
+                    new() {Left = "10%", Right = "8%", Top = "65%", Height = "10%"},
+                    new() {Left = "10%", Right = "8%", Top = "75%", Height = "10%"},
                 ],
                 XAxis = [
                     new() {
                         Type = AxisType.Category,
-                        BoundaryGap = false,
-                        Data = TimeSeries["5m"]!.Data!.Select(timeSeries => NumericUtility.FormatSeconds(
-                                (long)(DateTime.Now - DateTimeOffset.FromUnixTimeSeconds(timeSeries.Timestamp).LocalDateTime).TotalSeconds) + " ago"),         
+                        BoundaryGap = false
                     },
                     new()
                     {
                         Type = AxisType.Category,
                         GridIndex = 1,
                         AxisLabel = new(){ Show = false },
-                        BoundaryGap = false,
-                        Data = TimeSeries["5m"]!.Data!.Select(timeSeries => NumericUtility.FormatSeconds(
-                                (long)(DateTime.Now - DateTimeOffset.FromUnixTimeSeconds(timeSeries.Timestamp).LocalDateTime).TotalSeconds) + " ago"),
+                        BoundaryGap = false
                     },
                     new()
                     {
                         Type = AxisType.Category,
                         GridIndex = 2,
                         AxisLabel = new() { Show = false },
-                        BoundaryGap = false,
-                        Data = TimeSeries["5m"]!.Data!.Select(timeSeries => NumericUtility.FormatSeconds(
-                                (long)(DateTime.Now - DateTimeOffset.FromUnixTimeSeconds(timeSeries.Timestamp).LocalDateTime).TotalSeconds) + " ago"),
+                        BoundaryGap = false
                     }],
                 YAxis = [
-                    new(){ 
+                    new(){
                         Scale = true,
+                        AxisLabel = new(){ Formatter = new JFunc() { RAW = _rawJsYAxisLabelFormatter } }
                     },
                     new(){
                         Scale = true, GridIndex = 1,
                         SplitNumber = 2,
-                        SplitLine = new(){ Show = false }
+                        SplitLine = new(){ Show = false },
+                        AxisLabel = new(){ Formatter = new JFunc() { RAW = _rawJsYAxisLabelFormatter } }
                     },
                     new(){
                         Scale = true,
                         GridIndex = 2,
                         SplitNumber = 2,
                         SplitLine = new(){ Show = false },
+                        AxisLabel = new(){ Formatter = new JFunc() { RAW = _rawJsYAxisLabelFormatter } },
                         Inverse = true
+                    }],
+                DataZoom = [
+                    new DataZoom("inside")
+                    {
+                        XAxisIndex = new[] { 0, 1, 2 },
+                        Start = 0,
+                        End = 100,
+                    },
+                    new DataZoom("slider")
+                    {
+                        XAxisIndex = new[] { 0, 1, 2 },
+                        Start = 0,
+                        End = 100,
                     }],
                 Series = [
                     new OptionsLine.Line() {
                         Name = "Insta Buy Price",
                         Type = "line",
                         ConnectNulls = true,
-                        LineStyle = new(){ Color = "#00ff00" },
-                        Data = TimeSeries["5m"]!.Data!.Select(timeSeries => timeSeries.AvgHighPrice),
+                        LineStyle = new(){ Color = "#00ff00" }
                     },
-                     new OptionsLine.Line() {
+                    new OptionsLine.Line() {
                         Name = "Insta Sell Price",
                         Type = "line",
                         ConnectNulls = true,
-                        LineStyle = new(){ Color = "#ff0000" },
-                        Data = TimeSeries["5m"]!.Data!.Select(timeSeries => timeSeries.AvgLowPrice),
+                        LineStyle = new(){ Color = "#ff0000" }
                     },
                      new OptionsBar.Bar() {
                         Name = "Insta Buy Volume",
                         Type = "bar",
                         ItemStyle = new() { Color = "#00bcd4" },
-                        Data = TimeSeries["5m"]!.Data!.Select(timeSeries => timeSeries.HighPriceVolume),
                         XAxisIndex = 1,
                         YAxisIndex = 1,
                     },
@@ -103,12 +120,28 @@
                         Name = "Insta Sell Volume",
                         Type = "bar",
                         ItemStyle = new() { Color = "#f57c00" },
-                        Data = TimeSeries["5m"]!.Data!.Select(timeSeries => timeSeries.LowPriceVolume),
                         XAxisIndex = 2,
                         YAxisIndex = 2,
                     }]
             };
 
-        base.OnInitialized();
+        await base.OnInitializedAsync();
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (_chartOption is null || TimeSeries?.Data is null)
+            return;
+
+        foreach (XAxis xAxis in _chartOption.XAxis)
+            xAxis.Data = TimeSeries.Data.Select(timeSeries => NumericUtility.FormatSecondsToRelativeDateTime(timeSeries.Timestamp));
+
+        (_chartOption.Series[0] as OptionsLine.Line)!.Data = TimeSeries.Data.Select(timeSeries => timeSeries.AvgHighPrice);
+        (_chartOption.Series[1] as OptionsLine.Line)!.Data = TimeSeries.Data.Select(timeSeries => timeSeries.AvgLowPrice);
+        (_chartOption.Series[2] as OptionsBar.Bar)!.Data = TimeSeries.Data.Select(timeSeries => timeSeries.HighPriceVolume);
+        (_chartOption.Series[3] as OptionsBar.Bar)!.Data = TimeSeries.Data.Select(timeSeries => timeSeries.LowPriceVolume);
+
+        StateHasChanged();
+        base.OnParametersSet();
     }
 }
