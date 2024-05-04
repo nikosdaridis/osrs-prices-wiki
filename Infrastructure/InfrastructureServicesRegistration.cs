@@ -8,8 +8,8 @@ namespace Infrastructure
         public static void AddInfrastructureServices(IServiceCollection services)
         {
             services.AddSingleton<OSRSWikiHttpClient>();
-            services.AddSingleton<OldschoolWikiHttpClient>();
-            services.AddSingleton<ClientService>();
+            services.AddSingleton<ServerService>();
+            services.AddHostedService<ServerBackgroundService>();
         }
     }
 }

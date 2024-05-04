@@ -1,0 +1,41 @@
+﻿@implements IDisposable
+
+@inject PeriodicExecutorFactory PeriodicExecutorFactory
+
+<RadzenProgressBarCircular Style="font-size: 11px;" ShowValue=true Size=ProgressBarCircularSize.Small
+                           ProgressBarStyle=ProgressBarStyle.Primary Mode=ProgressBarMode.Determinate
+                           Value=@_scaledElapsedSeconds>
+    <Template>@(60 - Math.Floor(_scaledElapsedSeconds * 0.6))</Template>
+</RadzenProgressBarCircular>
+
+@code {
+    [Parameter]
+    public DateTime LastExecution { get; set; }
+
+    private PeriodicExecutor? _periodicExecutor;
+    private double _scaledElapsedSeconds;
+
+    protected override void OnParametersSet()
+    {
+        _periodicExecutor = PeriodicExecutorFactory.Create(200);
+        _periodicExecutor.JobExecuted += HandleJobExecuted;
+        _periodicExecutor.StartExecuting();
+
+        base.OnParametersSet();
+    }
+
+    private void HandleJobExecuted(object? sender, JobExecutedEventArgs e)
+    {
+        _scaledElapsedSeconds = Math.Min(100, Math.Round((DateTime.Now - LastExecution).TotalSeconds / 60 * 100));
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        if (_periodicExecutor is null)
+            return;
+
+        _periodicExecutor.JobExecuted -= HandleJobExecuted;
+        _periodicExecutor.Dispose();
+    }
+}

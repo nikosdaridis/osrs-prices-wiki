@@ -1,0 +1,68 @@
+﻿@page "/{Id:int}/{Name?}"
+
+@implements IDisposable
+
+@inject PeriodicExecutorFactory PeriodicExecutorFactory
+@inject ServerService ServerService
+@inject NavigationManager NavigationManager
+
+<PageTitle>@_item?.Name - OSRS Live GE Price Utilities</PageTitle>
+
+<h1>@_item?.Name - @_item?.Id</h1>
+<h2>TODO</h2>
+
+@if (_item is not null && _activeTimeSeries is not null)
+{
+    <ItemChart TimeSeries=_activeTimeSeries />
+}
+
+<a href="/">Back</a>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    [Parameter]
+    public string? Name { get; set; }
+
+    private PeriodicExecutor? _periodicExecutor;
+    private ItemModel? _item;
+    private Dictionary<string, TimeSeriesModel?> _timeSeries = new() { { "5m", new() }, { "1h", new() }, { "6h", new() }, { "24h", new() } };
+    private TimeSeriesModel? _activeTimeSeries;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (ServerService.GetCachedItems() is null or [])
+            await ServerService.GetLatestItems();
+
+        _item = ServerService.GetItem(Id);
+
+        if (_item is null)
+            NavigationManager.NavigateTo("/");
+
+        _periodicExecutor = PeriodicExecutorFactory.Create(60_000);
+        _periodicExecutor.JobExecuted += HandleJobExecuted;
+        _periodicExecutor.StartExecuting();
+
+        await base.OnInitializedAsync();
+    }
+
+    private void HandleJobExecuted(object? sender, JobExecutedEventArgs e)
+    {
+        InvokeAsync(async () =>
+           {
+               _timeSeries["5m"] = await ServerService.GetTimeseriesAsync("5m", _item!.Id);
+               _activeTimeSeries = _timeSeries["5m"];
+               StateHasChanged();
+           });
+    }
+
+    public void Dispose()
+    {
+        if (_periodicExecutor is null)
+            return;
+
+        _periodicExecutor.JobExecuted -= HandleJobExecuted;
+        _periodicExecutor.Dispose();
+    }
+}

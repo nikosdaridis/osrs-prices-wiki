@@ -1,0 +1,163 @@
+﻿<ELine Option=_chartOption style="height: 500px;"></ELine>
+
+@inject IWebHostEnvironment Environment
+@inject IJSRuntime JSRuntime
+
+@code {
+    [Parameter]
+    public TimeSeriesModel? TimeSeries { get; set; }
+
+    private EChartsOption<OptionsLine.Line>? _chartOption;
+    private DateTime _clientLocalTime = DateTime.UtcNow;
+    private TimeZoneInfo _clientTimeZone = TimeZoneInfo.Utc;
+    private string? _rawJsTooltipFormatter;
+    private string? _rawJsYAxisLabelFormatter;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (TimeSeries is null)
+            return;
+
+        _rawJsTooltipFormatter = (await File.ReadAllTextAsync(Path.Combine(Environment.WebRootPath, "eChartsTooltipFormatter.js"))).Replace("\"use strict\";", "");
+        _rawJsYAxisLabelFormatter = (await File.ReadAllTextAsync(Path.Combine(Environment.WebRootPath, "eChartsYAxisLabelFormatter.js"))).Replace("\"use strict\";", "");
+
+        _chartOption = new()
+            {
+                Animation = true,
+                Legend = new()
+                {
+                    Top = 10,
+                    Data = new[] { "Insta Buy Price", "Insta Sell Price", "Insta Buy Volume", "Insta Sell Volume" },
+                    TextStyle = new() { Color = "#ffffff" }
+                },
+                Tooltip = new()
+                {
+                    Trigger = TooltipTrigger.Axis,
+                    AxisPointer = new() { Type = AxisPointerType.Shadow },
+                    BorderColor = "#ccc",
+                    Padding = 10,
+                    Formatter = new JFunc() { RAW = _rawJsTooltipFormatter }
+                },
+                AxisPointer = new()
+                {
+                    Link = new() { XAxisIndex = "all" },
+                    Label = new() { BackgroundColor = "#ffffff" }
+                },
+                Grid = [
+                    new() {Left = "10%", Right = "8%", Height = "40%"},
+                    new() {Left = "10%", Right = "8%", Top = "65%", Height = "10%"},
+                    new() {Left = "10%", Right = "8%", Top = "75%", Height = "10%"},
+                ],
+                XAxis = [
+                    new() {
+                        Type = AxisType.Category,
+                        BoundaryGap = true
+                    },
+                    new()
+                    {
+                        Type = AxisType.Category,
+                        GridIndex = 1,
+                        AxisLabel = new(){ Show = false },
+                        BoundaryGap = true
+                    },
+                    new()
+                    {
+                        Type = AxisType.Category,
+                        GridIndex = 2,
+                        AxisLabel = new() { Show = false },
+                        BoundaryGap = true
+                    }],
+                YAxis = [
+                    new(){
+                        Scale = true,
+                        AxisLabel = new(){ Formatter = new JFunc() { RAW = _rawJsYAxisLabelFormatter } }
+                    },
+                    new(){
+                        Scale = true, GridIndex = 1,
+                        SplitNumber = 2,
+                        SplitLine = new(){ Show = false },
+                        AxisLabel = new(){ Formatter = new JFunc() { RAW = _rawJsYAxisLabelFormatter } }
+                    },
+                    new(){
+                        Scale = true,
+                        GridIndex = 2,
+                        SplitNumber = 2,
+                        SplitLine = new(){ Show = false },
+                        AxisLabel = new(){ Formatter = new JFunc() { RAW = _rawJsYAxisLabelFormatter } },
+                        Inverse = true
+                    }],
+                DataZoom = [
+                    new DataZoom("inside")
+                    {
+                        XAxisIndex = new[] { 0, 1, 2 },
+                        Start = 0,
+                        End = 100,
+                    },
+                    new DataZoom("slider")
+                    {
+                        XAxisIndex = new[] { 0, 1, 2 },
+                        Start = 0,
+                        End = 100,
+                    }],
+                Series = [
+                    new OptionsLine.Line() {
+                        Name = "Insta Buy Price",
+                        Type = "line",
+                        ConnectNulls = true,
+                        LineStyle = new(){ Color = "#00ff00" }
+                    },
+                    new OptionsLine.Line() {
+                        Name = "Insta Sell Price",
+                        Type = "line",
+                        ConnectNulls = true,
+                        LineStyle = new(){ Color = "#ff0000" }
+                    },
+                     new OptionsBar.Bar() {
+                        Name = "Insta Buy Volume",
+                        Type = "bar",
+                        ItemStyle = new() { Color = "#00bcd4" },
+                        XAxisIndex = 1,
+                        YAxisIndex = 1,
+                    },
+                    new OptionsBar.Bar() {
+                        Name = "Insta Sell Volume",
+                        Type = "bar",
+                        ItemStyle = new() { Color = "#f57c00" },
+                        XAxisIndex = 2,
+                        YAxisIndex = 2,
+                    }]
+            };
+
+        await base.OnInitializedAsync();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (_chartOption is null || TimeSeries?.Data is null)
+            return;
+
+        await UpdateClientTimeInfo();
+
+        foreach (XAxis xAxis in _chartOption.XAxis)
+            xAxis.Data = TimeSeries.Data.Select(timeSeries => NumericUtility.FormatSecondsToRelativeDateTime(timeSeries.Timestamp, _clientLocalTime, _clientTimeZone));
+
+        (_chartOption.Series[0] as OptionsLine.Line)!.Data = TimeSeries.Data.Select(timeSeries => timeSeries.AvgHighPrice);
+        (_chartOption.Series[1] as OptionsLine.Line)!.Data = TimeSeries.Data.Select(timeSeries => timeSeries.AvgLowPrice);
+        (_chartOption.Series[2] as OptionsBar.Bar)!.Data = TimeSeries.Data.Select(timeSeries => timeSeries.HighPriceVolume);
+        (_chartOption.Series[3] as OptionsBar.Bar)!.Data = TimeSeries.Data.Select(timeSeries => timeSeries.LowPriceVolume);
+
+        await InvokeAsync(StateHasChanged);
+        await base.OnParametersSetAsync();
+    }
+
+    private async Task UpdateClientTimeInfo()
+    {
+        (DateTime? datetime, TimeZoneInfo? timezone) = await DateTimeUtility.GetClientLocalTime(JSRuntime);
+
+        if (datetime is not null)
+            _clientLocalTime = datetime.Value;
+
+        if (timezone is not null)
+            _clientTimeZone = timezone;
+    }
+}

@@ -1,0 +1,186 @@
+﻿@implements IDisposable
+
+@inject IJSRuntime JSRuntime;
+@inject IOptions<OsrsWikiValues> OptionsOsrsWiki
+@inject ServerService ServerService
+@inject NavigationManager NavigationManager
+
+@if (ServerService.LastExecution is not null)
+{
+    <UpdateProgressCircle LastExecution=ServerService.LastExecution.Value />
+}
+
+<RadzenDataGrid @ref=_grid Count=@_items.Count() Data=@_items PageSize=25 PagerAlwaysVisible=true AllowColumnReorder=true AllowFiltering=true
+                FilterPopupRenderMode=PopupRenderMode.OnDemand AllowColumnResize=true FilterMode=Radzen.FilterMode.Advanced AllowPaging=true AllowSorting=true
+                ColumnWidth="100px" LogicalFilterOperator=LogicalFilterOperator.And PagerPosition=PagerPosition.TopAndBottom
+                PagerHorizontalAlign=HorizontalAlign.Center FilterCaseSensitivity=FilterCaseSensitivity.CaseInsensitive AllowColumnPicking=true
+                PageSizeOptions=_pageSizeOptions PageSizeText="" TItem=ItemModel FilterCleared=FilterCleared>
+    <Columns>
+        <CustomDataGridColumn Property=Id Title=Id Width="30px" MinWidth="40px" Visible=false
+                              FilterOperator=FilterOperator.Equals SecondFilterOperator=FilterOperator.GreaterThan>
+            <Template Context=item>
+                <a class="link" href=@($"/{StringUtility.BuildUri(item.Id.ToString(), item.Name, '-' )}")>
+                    <RadzenText Text=@item.Id.ToString() />
+                </a>
+            </Template>
+        </CustomDataGridColumn>
+        <RadzenDataGridColumn Property=Icon Title=Icon Filterable=false Sortable=false Width="30px" MinWidth="40px">
+            <Template Context=item>
+                <a class="link" href=@($"/{StringUtility.BuildUri(item.Id.ToString(), item.Name, '-' )}")>
+                    <RadzenImage Path=@item.Icon />
+                </a>
+            </Template>
+        </RadzenDataGridColumn>
+        <CustomDataGridColumn Property=Name Title=Name Width="100px" MinWidth="60px">
+            <Template Context=item>
+                <a class="link" href=@($"/{StringUtility.BuildUri(item.Id.ToString(), item.Name, '-' )}")>
+                    <RadzenText Text=@item.Name />
+                </a>
+            </Template>
+        </CustomDataGridColumn>
+        <CustomDataGridColumn Property=Examine Title=Examine Width="100px" MinWidth="60px" Visible=false />
+        <CustomDataGridColumn Property=InstaBuy Title="Insta Buy" Width="70px" MinWidth="70px"
+                              FilterOperator=FilterOperator.LessThanOrEquals SecondFilterOperator=FilterOperator.GreaterThanOrEquals>
+            <Template Context=item>
+                <RadzenText Text=@item.InstaBuy.ToString("N0") />
+            </Template>
+        </CustomDataGridColumn>
+        <CustomDataGridColumn Property=InstaSell Title="Insta Sell" Width="70px" MinWidth="70px"
+                              FilterOperator=FilterOperator.LessThanOrEquals SecondFilterOperator=FilterOperator.GreaterThanOrEquals>
+            <Template Context=item>
+                <RadzenText Text=@item.InstaSell.ToString("N0") />
+            </Template>
+        </CustomDataGridColumn>
+        <CustomDataGridColumn Property=Margin Title=Margin Width="50px" MinWidth="50px"
+                              SortOrder=SortOrder.Descending
+                              FilterOperator=FilterOperator.GreaterThanOrEquals SecondFilterOperator=FilterOperator.LessThanOrEquals>
+            <Template Context=item>
+                <RadzenText Style=@($"color: {CSSHelper.GetColor(nameof(item.Margin), item.Margin)}") Text="@NumericUtility.FormatNumber(item.Margin)" />
+            </Template>
+        </CustomDataGridColumn>
+        <CustomDataGridColumn Property=RoiPercentage Title=Roi Width="50px" MinWidth="50px"
+                              FilterOperator=FilterOperator.GreaterThanOrEquals SecondFilterOperator=FilterOperator.LessThanOrEquals>
+            <Template Context=item>
+                <RadzenText Style=@($"color: {CSSHelper.GetColor(nameof(item.RoiPercentage), item.RoiPercentage)}")
+                            Text=@(item.RoiPercentage == Math.Floor(item.RoiPercentage) ? $"{item.RoiPercentage:F0}%" : $"{item.RoiPercentage:F1}%") />
+            </Template>
+        </CustomDataGridColumn>
+        <CustomDataGridColumn Property=Volume Title=Volume Width="50px" MinWidth="50px" FilterValue=_volumeFilter.Value
+                              FilterOperator=FilterOperator.GreaterThanOrEquals SecondFilterOperator=FilterOperator.LessThanOrEquals>
+            <Template Context=item>
+                <RadzenText Style=@($"color: {CSSHelper.GetColor(nameof(item.Volume), item.Volume)}")
+                            Text=@NumericUtility.FormatNumber(item.Volume) />
+            </Template>
+        </CustomDataGridColumn>
+        <RadzenDataGridColumn Property=InstaBuyTime Title="Latest Insta Buy" Width="70px" MinWidth="70px" FilterValue=_instaBuyTimeFilter.Value
+                              FilterOperator=@(_instaBuyTimeFilter.Direction == TimeDirection.Before ? FilterOperator.LessThan : FilterOperator.GreaterThan)>
+            <Template Context=item>
+                <RadzenText Style=@($"color: {CSSHelper.GetColor(nameof(item.InstaBuyTime), item.InstaBuyTime)}")
+                            Text=@($"{NumericUtility.FormatSeconds(item.InstaBuyTime)} ago") />
+            </Template>
+            <FilterTemplate>
+                <TimeFilterTemplate @bind-Filter=_instaBuyTimeFilter Grid=_grid />
+            </FilterTemplate>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn Property=InstaSellTime Title="Latest Insta Sell" Width="70px" MinWidth="70px" FilterValue=_instaSellTimeFilter.Value
+                              FilterOperator=@(_instaSellTimeFilter.Direction == TimeDirection.Before ? FilterOperator.LessThan : FilterOperator.GreaterThan)>
+            <Template Context=item>
+                <RadzenText Style=@($"color: {CSSHelper.GetColor(nameof(item.InstaSellTime), item.InstaSellTime)}")
+                            Text=@($"{NumericUtility.FormatSeconds(item.InstaSellTime)} ago") />
+            </Template>
+            <FilterTemplate>
+                <TimeFilterTemplate @bind-Filter=_instaSellTimeFilter Grid=_grid />
+            </FilterTemplate>
+        </RadzenDataGridColumn>
+        <CustomDataGridColumn Property=Limit Title=Limit Width="50px" MinWidth="50px" Visible=false
+                              FilterOperator=FilterOperator.GreaterThanOrEquals SecondFilterOperator=FilterOperator.LessThanOrEquals>
+            <Template Context=item>
+                <RadzenText Text=@NumericUtility.FormatNumber(item.Limit, "0") />
+            </Template>
+        </CustomDataGridColumn>
+        <CustomDataGridColumn Property=MarginXLimit Title="Margin x Limit" Width="60px" MinWidth="60px"
+                              FilterOperator=FilterOperator.GreaterThanOrEquals SecondFilterOperator=FilterOperator.LessThanOrEquals>
+            <Template Context=item>
+                <RadzenText Style=@($"color: {CSSHelper.GetColor(nameof(item.MarginXLimit), item.MarginXLimit)}")
+                            Text=@NumericUtility.FormatNumber(item.MarginXLimit) />
+            </Template>
+        </CustomDataGridColumn>
+        <CustomDataGridColumn Property=MarginXVolume Title="Margin x Volume" Width="60px" MinWidth="60px"
+                              FilterOperator=FilterOperator.GreaterThanOrEquals SecondFilterOperator=FilterOperator.LessThanOrEquals>
+            <Template Context=item>
+                <RadzenText Style=@($"color: {CSSHelper.GetColor(nameof(item.MarginXVolume), item.MarginXVolume)}")
+                            Text=@NumericUtility.FormatNumber(item.MarginXVolume) />
+            </Template>
+        </CustomDataGridColumn>
+        <CustomDataGridColumn Property=Value Title=Value Width="50px" MinWidth="40px" Visible=false
+                              FilterOperator=FilterOperator.GreaterThanOrEquals SecondFilterOperator=FilterOperator.LessThanOrEquals>
+            <Template Context=item>
+                <RadzenText Text=@NumericUtility.FormatNumber(item.Value, "0") />
+            </Template>
+        </CustomDataGridColumn>
+        <CustomDataGridColumn Property=HighAlch Title=HighAlch Width="60px" MinWidth="50px" Visible=false
+                              FilterOperator=FilterOperator.GreaterThanOrEquals SecondFilterOperator=FilterOperator.LessThanOrEquals>
+            <Template Context=item>
+                <RadzenText Text=@NumericUtility.FormatNumber(item.HighAlch, "0") />
+            </Template>
+        </CustomDataGridColumn>
+        <CustomDataGridColumn Property=LowAlch Title=LowAlch Width="60px" MinWidth="50px" Visible=false
+                              FilterOperator=FilterOperator.GreaterThanOrEquals SecondFilterOperator=FilterOperator.LessThanOrEquals>
+            <Template Context=item>
+                <RadzenText Text=@NumericUtility.FormatNumber(item.LowAlch, "0") />
+            </Template>
+        </CustomDataGridColumn>
+        <RadzenDataGridColumn Property=Accessibility Title=Members Width="40px" MinWidth="40px" Visible=false
+                              LogicalFilterOperator=LogicalFilterOperator.Or>
+            <Template Context=item>
+                <RadzenImage Path=@StringUtility.BuildUri(OptionsOsrsWiki.Value.OldschoolWikiIconsBaseUri,
+                             $"{(item.Accessibility == Accessibility.Members ? "Member_icon" : "Free-to-play_icon")}.png", '_') />
+            </Template>
+        </RadzenDataGridColumn>
+        <CustomDataGridColumn Property=Tax Title=Tax Width="50px" MinWidth="50px" Visible=false
+                              FilterOperator=FilterOperator.GreaterThanOrEquals SecondFilterOperator=FilterOperator.LessThanOrEquals>
+            <Template Context=item>
+                <RadzenText Text=@NumericUtility.FormatNumber(item.Tax) />
+            </Template>
+        </CustomDataGridColumn>
+    </Columns>
+</RadzenDataGrid>
+
+@code {
+    private RadzenDataGrid<ItemModel> _grid = new();
+    private readonly IEnumerable<int> _pageSizeOptions = new int[] { 10, 15, 25, 50, 100 };
+    private IEnumerable<ItemModel> _items = [];
+
+    private Filter<long?> _volumeFilter = new() { Value = 500 };
+    private TimeFilter<long?> _instaBuyTimeFilter = new() { Value = (long)TimeUnit.Hours };
+    private TimeFilter<long?> _instaSellTimeFilter = new() { Value = (long)TimeUnit.Hours };
+
+    protected override void OnInitialized()
+    {
+        _items = ServerService.GetCachedItems();
+        ServerService.OnDataUpdated += UpdateItems;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+            await JSRuntime.InvokeVoidAsync("moveProgressIndicator");
+    }
+
+    private void UpdateItems()
+    {
+        _items = ServerService.GetCachedItems();
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void FilterCleared(DataGridColumnFilterEventArgs<ItemModel> args)
+    {
+        if (args.Column.Property.Equals(nameof(ItemModel.Volume)))
+            _volumeFilter.Value = null;
+    }
+
+    public void Dispose()
+    {
+        ServerService.OnDataUpdated -= UpdateItems;
+    }
+}
