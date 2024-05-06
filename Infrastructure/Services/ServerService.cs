@@ -12,11 +12,11 @@ namespace Infrastructure.Services
         public DateTime? LastExecution;
 
         private MappingModel[]? _mappingResponse;
-        private IDictionary<string, string>? _volumeResponse;
+        private Dictionary<string, string>? _volumeResponse;
         private LatestModel? _latestResponse;
-        private IList<ItemModel> _items = [];
+        private List<ItemModel> _items = [];
 
-        public async Task<IList<ItemModel>> GetLatestItems()
+        public async Task<List<ItemModel>> GetLatestItemsAsync()
         {
             if (_mappingResponse is null or [])
                 await GetMappingAsync();
@@ -30,15 +30,12 @@ namespace Infrastructure.Services
             return _items;
         }
 
-        public IList<ItemModel> GetCachedItems() => _items;
+        public List<ItemModel> GetCachedItems() => _items;
 
         public ItemModel? GetItem(int id) => _items.FirstOrDefault(item => item.Id == id);
 
-        public async Task<TimeSeriesModel?> GetTimeseriesAsync(string timestep, int id) =>
-         await osrsWikiHttpClient.GetAsync<TimeSeriesModel>(StringUtility.BuildUri(
-             optionsOsrsWiki.Value.OSRSPricesWikiBaseUri, optionsOsrsWiki.Value.Timeseries, timestep, id.ToString()));
 
-        private async Task<bool> GetMappingAsync()
+        public async Task<bool> GetMappingAsync()
         {
             MappingModel[]? mappingResponse = await osrsWikiHttpClient.GetAsync<MappingModel[]>(
                 StringUtility.BuildUri(optionsOsrsWiki.Value.OSRSPricesWikiBaseUri, optionsOsrsWiki.Value.Mapping));
@@ -50,7 +47,7 @@ namespace Infrastructure.Services
             return true;
         }
 
-        private async Task<bool> GetVolumeAsync()
+        public async Task<bool> GetVolumeAsync()
         {
             Dictionary<string, string>? volumeResponse = await osrsWikiHttpClient.GetAsync<Dictionary<string, string>>(
                 StringUtility.BuildUri(optionsOsrsWiki.Value.OldschoolWikiBaseUri, optionsOsrsWiki.Value.Volume));
@@ -75,6 +72,10 @@ namespace Infrastructure.Services
             OnDataUpdated?.Invoke();
             return true;
         }
+
+        public async Task<TimeSeriesModel?> GetTimeseriesAsync(string timestep, int id) =>
+         await osrsWikiHttpClient.GetAsync<TimeSeriesModel>(StringUtility.BuildUri(
+             optionsOsrsWiki.Value.OSRSPricesWikiBaseUri, optionsOsrsWiki.Value.Timeseries, timestep, id.ToString()));
 
         private bool CombineItemsData()
         {

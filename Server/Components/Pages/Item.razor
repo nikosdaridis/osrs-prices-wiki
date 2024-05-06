@@ -33,7 +33,7 @@
     protected override async Task OnInitializedAsync()
     {
         if (ServerService.GetCachedItems() is null or [])
-            await ServerService.GetLatestItems();
+            await ServerService.GetLatestItemsAsync();
 
         _item = ServerService.GetItem(Id);
 

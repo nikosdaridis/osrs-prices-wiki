@@ -1,16 +1,41 @@
 ﻿using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace Infrastructure.Services
 {
-    public class ServerBackgroundService(ServerService serverService) : BackgroundService
+    public class ServerBackgroundService(ServerService serverService, ILogger<ServerBackgroundService> logger) : BackgroundService
     {
         protected override async Task ExecuteAsync(CancellationToken cancellationToken)
         {
-            while (!cancellationToken.IsCancellationRequested)
+            Dictionary<string, (Func<Task> Func, TimeSpan Interval)> tasks = new()
             {
-                await serverService.GetLatestItems();
+                { nameof(serverService.GetLatestItemsAsync), (serverService.GetLatestItemsAsync, TimeSpan.FromMinutes(1)) },
+                { nameof(serverService.GetMappingAsync), (serverService.GetMappingAsync, TimeSpan.FromMinutes(60)) },
+                { nameof(serverService.GetVolumeAsync), (serverService.GetVolumeAsync, TimeSpan.FromMinutes(60)) }
+            };
 
-                await Task.Delay(60_000, cancellationToken);
+            Task[] runningTasks = tasks.Select(task => RepeatTaskAsync(task.Key, task.Value.Func, task.Value.Interval, cancellationToken)).ToArray();
+
+            await Task.WhenAll(runningTasks);
+        }
+
+        private async Task RepeatTaskAsync(string name, Func<Task> func, TimeSpan interval, CancellationToken cancellationToken)
+        {
+            try
+            {
+                while (!cancellationToken.IsCancellationRequested)
+                {
+                    await func();
+                    await Task.Delay(interval, cancellationToken);
+                }
+            }
+            catch (TaskCanceledException ex)
+            {
+                logger.LogWarning(ex, "Task {TaskName} was cancelled", name);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "An error occurred while executing task {TaskName}", name);
             }
         }
     }
