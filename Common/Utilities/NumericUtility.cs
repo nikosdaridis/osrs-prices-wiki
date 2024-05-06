@@ -1,7 +1,11 @@
-﻿namespace Common.Utilities
+﻿using System.Globalization;
+
+namespace Common.Utilities
 {
     public static class NumericUtility
     {
+        private static readonly CultureInfo _englishCulture = new("en-US");
+
         /// <summary>
         /// Formats seconds to readable format (months, days, hours, minutes, seconds)
         /// </summary>
@@ -30,9 +34,9 @@
 
             return daysDifference switch
             {
-                0 => $"Today {targetDateTime:HH:mm}",
+                <= 0 => $"Today {targetDateTime:HH:mm}",
                 1 => $"Yesterday {targetDateTime:HH:mm}",
-                _ when daysDifference > 1 && daysDifference < 7 => $"Last {targetDateTime:dddd} {targetDateTime:HH:mm}",
+                _ when daysDifference > 1 && daysDifference < 7 => $"Last {targetDateTime.ToString("dddd", _englishCulture)} {targetDateTime:HH:mm}",
                 _ => $"{targetDateTime:dd/MM/yy H:mm}"
             };
         }

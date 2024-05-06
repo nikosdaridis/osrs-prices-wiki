@@ -6,10 +6,9 @@
 @inject ServerService ServerService
 @inject NavigationManager NavigationManager
 
-<PageTitle>@_item?.Name - OSRS Live GE Price Utilities</PageTitle>
+<PageTitle>@_item?.Name - OSRS Live GE Prices Utilities</PageTitle>
 
-<h1>@_item?.Name - @_item?.Id</h1>
-<h2>TODO</h2>
+<h1>@_item?.Name</h1>
 
 @if (_item is not null && _activeTimeSeries is not null)
 {
@@ -35,7 +34,7 @@
         if (ServerService.GetCachedItems() is null or [])
             await ServerService.GetLatestItemsAsync();
 
-        _item = ServerService.GetItem(Id);
+        _item = ServerService.GetCachedItem(Id);
 
         if (_item is null)
             NavigationManager.NavigateTo("/");

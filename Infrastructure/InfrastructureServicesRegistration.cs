@@ -5,6 +5,9 @@ namespace Infrastructure
 {
     public static class InfrastructureServicesRegistration
     {
+        /// <summary>
+        /// Adds infrastructure services
+        /// </summary>
         public static void AddInfrastructureServices(IServiceCollection services)
         {
             services.AddSingleton<OSRSWikiHttpClient>();

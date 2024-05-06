@@ -29,6 +29,9 @@
     [Parameter]
     public RadzenDataGrid<ItemModel>? Grid { get; set; }
 
+    /// <summary>
+    /// Resets filter to default values and updates the filter
+    /// </summary>
     private async Task ClearFilterAsync()
     {
         Filter!.Direction = TimeDirection.Before;
@@ -37,6 +40,9 @@
         await UpdateFilterAsync();
     }
 
+    /// <summary>
+    /// Updates filter value, invokes FilterChanged event, closes all popups and goes to first page of the grid
+    /// </summary>
     private async Task UpdateFilterAsync()
     {
         Filter!.Value = Filter.Number * (int)Filter.Unit;

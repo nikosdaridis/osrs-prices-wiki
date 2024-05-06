@@ -3,7 +3,7 @@
 </h1>
 
 <p align="center">
-  OSRS Live GE Prices and Utilities
+  OldSchool Runescape Live GE Prices Utilities
 </p>
 
 <div align="center">

@@ -15,6 +15,9 @@
     private PeriodicExecutor? _periodicExecutor;
     private double _scaledElapsedSeconds;
 
+    /// <summary>
+    /// Initializes periodic executor, subscribes to its event and starts executing
+    /// </summary>
     protected override void OnParametersSet()
     {
         _periodicExecutor = PeriodicExecutorFactory.Create(200);
@@ -24,12 +27,18 @@
         base.OnParametersSet();
     }
 
+    /// <summary>
+    /// Updates scaled elapsed seconds and refreshes the component
+    /// </summary>
     private void HandleJobExecuted(object? sender, JobExecutedEventArgs e)
     {
         _scaledElapsedSeconds = Math.Min(100, Math.Round((DateTime.Now - LastExecution).TotalSeconds / 60 * 100));
         InvokeAsync(StateHasChanged);
     }
 
+    /// <summary>
+    /// Unsubscribes from periodic executor event and disposes it
+    /// </summary>
     public void Dispose()
     {
         if (_periodicExecutor is null)

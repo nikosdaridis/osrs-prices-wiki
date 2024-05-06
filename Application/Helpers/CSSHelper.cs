@@ -33,21 +33,19 @@ namespace Application.Helpers
                 return "#ffffff";
 
             return Colors[FindThresholdIndex(value, config)];
-        }
 
-        /// <summary>
-        /// Finds index of color based on value, order and range
-        /// </summary>
-        private static int FindThresholdIndex(double value, (double[] Thresholds, Order Order, ColorRange Range) config)
-        {
-            for (int i = 0; i < config.Thresholds.Length; i++)
+            // Finds index of color based on value, order and range
+            static int FindThresholdIndex(double value, (double[] Thresholds, Order Order, ColorRange Range) config)
             {
-                if (config.Order == Order.Ascending && value <= config.Thresholds[i] ||
-                    config.Order == Order.Descending && value >= config.Thresholds[i])
-                    return config.Range == ColorRange.WhiteToGreen ? 4 + i : i;
-            }
+                for (int i = 0; i < config.Thresholds.Length; i++)
+                {
+                    if (config.Order == Order.Ascending && value <= config.Thresholds[i] ||
+                        config.Order == Order.Descending && value >= config.Thresholds[i])
+                        return config.Range == ColorRange.WhiteToGreen ? 4 + i : i;
+                }
 
-            return Colors.Length - 1;
+                return Colors.Length - 1;
+            }
         }
     }
 }

@@ -9,6 +9,9 @@ namespace Server
 {
     public static class ConfigureServices
     {
+        /// <summary>
+        /// Adds services
+        /// </summary>
         public static void AddServices(WebApplicationBuilder builder)
         {
             builder.Services.AddRazorComponents()
@@ -24,9 +27,15 @@ namespace Server
             InfrastructureServicesRegistration.AddInfrastructureServices(builder.Services);
         }
 
+        /// <summary>
+        /// Adds settings
+        /// </summary>
         private static void AddSettings(WebApplicationBuilder builder) =>
             builder.Services.Configure<OsrsWikiValues>(builder.Configuration.GetSection(nameof(OsrsWikiValues)));
 
+        /// <summary>
+        /// Configures Serilog
+        /// </summary>
         private static void ConfigureSerilog()
         {
             Log.Logger = new LoggerConfiguration()

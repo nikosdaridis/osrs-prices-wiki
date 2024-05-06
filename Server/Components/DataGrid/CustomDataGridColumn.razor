@@ -3,6 +3,10 @@
 @inherits RadzenDataGridColumn<TItem>
 
 @code {
+
+    /// <summary>
+    /// Remove null, empty, not equals and custom operators from the filter operators
+    /// </summary>
     public override IEnumerable<FilterOperator> GetFilterOperators()
     {
         IEnumerable<FilterOperator> operators = base.GetFilterOperators();

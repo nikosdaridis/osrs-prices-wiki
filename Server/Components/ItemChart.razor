@@ -1,4 +1,4 @@
-﻿<ELine Option=_chartOption style="height: 500px;"></ELine>
+﻿<ELine Option=_chartOption style="height: 500px; max-width: 95vw;"></ELine>
 
 @inject IWebHostEnvironment Environment
 @inject IJSRuntime JSRuntime
@@ -13,6 +13,9 @@
     private string? _rawJsTooltipFormatter;
     private string? _rawJsYAxisLabelFormatter;
 
+    /// <summary>
+    /// Initializes chart option
+    /// </summary>
     protected override async Task OnInitializedAsync()
     {
         if (TimeSeries is null)
@@ -92,12 +95,14 @@
                         XAxisIndex = new[] { 0, 1, 2 },
                         Start = 0,
                         End = 100,
+                        Realtime = true,
                     },
                     new DataZoom("slider")
                     {
                         XAxisIndex = new[] { 0, 1, 2 },
                         Start = 0,
                         End = 100,
+                        Realtime = true
                     }],
                 Series = [
                     new OptionsLine.Line() {
@@ -131,6 +136,9 @@
         await base.OnInitializedAsync();
     }
 
+    /// <summary>
+    /// Updates chart option with time series data
+    /// </summary>
     protected override async Task OnParametersSetAsync()
     {
         if (_chartOption is null || TimeSeries?.Data is null)
@@ -150,6 +158,9 @@
         await base.OnParametersSetAsync();
     }
 
+    /// <summary>
+    /// Updates client local time and time zone
+    /// </summary>
     private async Task UpdateClientTimeInfo()
     {
         (DateTime? datetime, TimeZoneInfo? timezone) = await DateTimeUtility.GetClientLocalTime(JSRuntime);

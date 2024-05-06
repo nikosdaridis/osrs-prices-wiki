@@ -9,13 +9,16 @@ namespace Infrastructure.Services
     public class ServerService(OSRSWikiHttpClient osrsWikiHttpClient, IOptions<OsrsWikiValues> optionsOsrsWiki)
     {
         public event Action? OnDataUpdated;
-        public DateTime? LastExecution;
+        public DateTime? LastUpdate;
 
         private MappingModel[]? _mappingResponse;
         private Dictionary<string, string>? _volumeResponse;
         private LatestModel? _latestResponse;
         private List<ItemModel> _items = [];
 
+        /// <summary>
+        /// Gets and combines data for latest items
+        /// </summary>
         public async Task<List<ItemModel>> GetLatestItemsAsync()
         {
             if (_mappingResponse is null or [])
@@ -30,11 +33,19 @@ namespace Infrastructure.Services
             return _items;
         }
 
+        /// <summary>
+        /// Gets cached items
+        /// </summary>
         public List<ItemModel> GetCachedItems() => _items;
 
-        public ItemModel? GetItem(int id) => _items.FirstOrDefault(item => item.Id == id);
+        /// <summary>
+        /// Gets item by Id from cached items
+        /// </summary>
+        public ItemModel? GetCachedItem(int id) => _items.FirstOrDefault(item => item.Id == id);
 
-
+        /// <summary>
+        /// Gets and caches items mapping data
+        /// </summary>
         public async Task<bool> GetMappingAsync()
         {
             MappingModel[]? mappingResponse = await osrsWikiHttpClient.GetAsync<MappingModel[]>(
@@ -47,6 +58,9 @@ namespace Infrastructure.Services
             return true;
         }
 
+        /// <summary>
+        /// Gets and caches items volume data
+        /// </summary>
         public async Task<bool> GetVolumeAsync()
         {
             Dictionary<string, string>? volumeResponse = await osrsWikiHttpClient.GetAsync<Dictionary<string, string>>(
@@ -59,6 +73,9 @@ namespace Infrastructure.Services
             return true;
         }
 
+        /// <summary>
+        /// Gets and caches items latest data and updates last update datetime
+        /// </summary>
         private async Task<bool> GetLatestAsync()
         {
             LatestModel? latestResponse = await osrsWikiHttpClient.GetAsync<LatestModel>(
@@ -68,15 +85,21 @@ namespace Infrastructure.Services
                 return false;
 
             _latestResponse = latestResponse;
-            LastExecution = DateTime.Now;
+            LastUpdate = DateTime.Now;
             OnDataUpdated?.Invoke();
             return true;
         }
 
+        /// <summary>
+        /// Gets timeseries of item prices and volume based on timestep and item Id
+        /// </summary>
         public async Task<TimeSeriesModel?> GetTimeseriesAsync(string timestep, int id) =>
          await osrsWikiHttpClient.GetAsync<TimeSeriesModel>(StringUtility.BuildUri(
              optionsOsrsWiki.Value.OSRSPricesWikiBaseUri, optionsOsrsWiki.Value.Timeseries, timestep, id.ToString()));
 
+        /// <summary>
+        /// Combines mapping, volume and latest data into items list
+        /// </summary>
         private bool CombineItemsData()
         {
             if (_mappingResponse is null or [] || _latestResponse?.Data is null || _volumeResponse is null)

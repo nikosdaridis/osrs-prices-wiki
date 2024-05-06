@@ -5,9 +5,15 @@ namespace Infrastructure.Services
 {
     public class BaseHttpClient(HttpClient httpClient, ILogger<BaseHttpClient> logger) : IBaseHttpClient
     {
+        /// <summary>
+        /// GET request to specified URI and returns deserialized response
+        /// </summary>
         public Task<TResponse?> GetAsync<TResponse>(string requestUri) =>
             SendAsync<TResponse?>(new HttpRequestMessage(HttpMethod.Get, requestUri));
 
+        /// <summary>
+        /// Sends HTTP request and handles response and deserialization
+        /// </summary>
         protected async Task<TResponse?> SendAsync<TResponse>(HttpRequestMessage request)
         {
             using HttpResponseMessage response = await httpClient.SendAsync(request);

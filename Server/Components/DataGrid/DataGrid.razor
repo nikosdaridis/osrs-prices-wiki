@@ -5,9 +5,9 @@
 @inject ServerService ServerService
 @inject NavigationManager NavigationManager
 
-@if (ServerService.LastExecution is not null)
+@if (ServerService.LastUpdate is not null)
 {
-    <UpdateProgressCircle LastExecution=ServerService.LastExecution.Value />
+    <UpdateProgressCircle LastExecution=ServerService.LastUpdate.Value />
 }
 
 <RadzenDataGrid @ref=_grid Count=@_items.Count() Data=@_items PageSize=25 PagerAlwaysVisible=true AllowColumnReorder=true AllowFiltering=true
@@ -155,6 +155,9 @@
     private TimeFilter<long?> _instaBuyTimeFilter = new() { Value = (long)TimeUnit.Hours };
     private TimeFilter<long?> _instaSellTimeFilter = new() { Value = (long)TimeUnit.Hours };
 
+    /// <summary>
+    /// Gets cached items and subscribes to data updated event
+    /// </summary>
     protected override void OnInitialized()
     {
         _items = ServerService.GetCachedItems();
@@ -167,18 +170,27 @@
             await JSRuntime.InvokeVoidAsync("moveProgressIndicator");
     }
 
+    /// <summary>
+    /// Updates items when data is updated
+    /// </summary>
     private void UpdateItems()
     {
         _items = ServerService.GetCachedItems();
         InvokeAsync(StateHasChanged);
     }
 
+    /// <summary>
+    /// Clears volume filter
+    /// </summary>
     private void FilterCleared(DataGridColumnFilterEventArgs<ItemModel> args)
     {
         if (args.Column.Property.Equals(nameof(ItemModel.Volume)))
             _volumeFilter.Value = null;
     }
 
+    /// <summary>
+    /// Unsubscribes from data updated event
+    /// </summary>
     public void Dispose()
     {
         ServerService.OnDataUpdated -= UpdateItems;

@@ -5,6 +5,9 @@ namespace Infrastructure.Services
 {
     public class ServerBackgroundService(ServerService serverService, ILogger<ServerBackgroundService> logger) : BackgroundService
     {
+        /// <summary>
+        /// Initializes tasks and manages concurrent execution
+        /// </summary>
         protected override async Task ExecuteAsync(CancellationToken cancellationToken)
         {
             Dictionary<string, (Func<Task> Func, TimeSpan Interval)> tasks = new()
@@ -19,6 +22,9 @@ namespace Infrastructure.Services
             await Task.WhenAll(runningTasks);
         }
 
+        /// <summary>
+        /// Executes specific task repeatedly at interval until cancellation
+        /// </summary>
         private async Task RepeatTaskAsync(string name, Func<Task> func, TimeSpan interval, CancellationToken cancellationToken)
         {
             try
