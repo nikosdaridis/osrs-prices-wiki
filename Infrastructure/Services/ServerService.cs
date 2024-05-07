@@ -41,7 +41,14 @@ namespace Infrastructure.Services
         /// <summary>
         /// Gets item by Id from cached items
         /// </summary>
-        public ItemModel? GetCachedItem(int id) => _items.FirstOrDefault(item => item.Id == id);
+        public ItemModel? GetCachedItem(int id) =>
+            _items.FirstOrDefault(item => item.Id == id);
+
+        /// <summary>
+        /// Gets item by Name from cached items
+        /// </summary>
+        public ItemModel? GetCachedItem(string name) =>
+            _items.FirstOrDefault(item => string.Equals(item.Name, name, StringComparison.OrdinalIgnoreCase));
 
         /// <summary>
         /// Gets and caches items mapping data

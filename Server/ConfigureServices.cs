@@ -1,6 +1,7 @@
 ﻿using Application;
 using Application.Models;
 using Infrastructure;
+using Radzen;
 using Serilog;
 using System.Globalization;
 using System.Runtime.InteropServices;
@@ -18,6 +19,7 @@ namespace Server
                 .AddInteractiveServerComponents();
 
             builder.Services.AddHttpClient();
+            builder.Services.AddRadzenComponents();
             builder.Services.AddECharts();
 
             AddSettings(builder);

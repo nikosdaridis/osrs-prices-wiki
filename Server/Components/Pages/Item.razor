@@ -6,7 +6,9 @@
 @inject ServerService ServerService
 @inject NavigationManager NavigationManager
 
-<PageTitle>@_item?.Name - OSRS Live GE Prices Utilities</PageTitle>
+<PageTitle>@_item?.Name - OSRS Live GE Price Utilities</PageTitle>
+
+<NavigationHeader />
 
 <h1>@_item?.Name</h1>
 
@@ -14,8 +16,6 @@
 {
     <ItemChart TimeSeries=_activeTimeSeries />
 }
-
-<a href="/">Back</a>
 
 @code {
     [Parameter]
@@ -29,8 +29,24 @@
     private Dictionary<string, TimeSeriesModel?> _timeSeries = new() { { "5m", new() }, { "1h", new() }, { "6h", new() }, { "24h", new() } };
     private TimeSeriesModel? _activeTimeSeries;
 
-    protected override async Task OnInitializedAsync()
+
+    /// <summary>
+    /// Subscribes to data updated event
+    /// </summary>
+    protected override void OnInitialized()
     {
+        base.OnInitialized();
+
+        ServerService.OnDataUpdated += UpdateItem;
+    }
+
+    /// <summary>
+    /// Sets item and starts periodic executor for echarts time series
+    /// </summary>
+    protected override async Task OnParametersSetAsync()
+    {
+        await base.OnParametersSetAsync();
+
         if (ServerService.GetCachedItems() is null or [])
             await ServerService.GetLatestItemsAsync();
 
@@ -39,13 +55,26 @@
         if (_item is null)
             NavigationManager.NavigateTo("/");
 
+        _periodicExecutor?.Dispose();
         _periodicExecutor = PeriodicExecutorFactory.Create(60_000);
         _periodicExecutor.JobExecuted += HandleJobExecuted;
         _periodicExecutor.StartExecuting();
 
-        await base.OnInitializedAsync();
+        StateHasChanged();
     }
 
+    /// <summary>
+    /// Updates item when data is updated
+    /// </summary>
+    private void UpdateItem()
+    {
+        _item = ServerService.GetCachedItem(Id);
+        InvokeAsync(StateHasChanged);
+    }
+
+    /// <summary>
+    /// Updates time series
+    /// </summary>
     private void HandleJobExecuted(object? sender, JobExecutedEventArgs e)
     {
         InvokeAsync(async () =>
@@ -56,8 +85,13 @@
            });
     }
 
+    /// <summary>
+    /// Unsubscribes from data updated event and disposes periodic executor
+    /// </summary>
     public void Dispose()
     {
+        ServerService.OnDataUpdated -= UpdateItem;
+
         if (_periodicExecutor is null)
             return;
 

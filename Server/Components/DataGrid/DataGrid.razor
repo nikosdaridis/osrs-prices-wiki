@@ -1,14 +1,8 @@
 ﻿@implements IDisposable
 
-@inject IJSRuntime JSRuntime;
 @inject IOptions<OsrsWikiValues> OptionsOsrsWiki
 @inject ServerService ServerService
 @inject NavigationManager NavigationManager
-
-@if (ServerService.LastUpdate is not null)
-{
-    <UpdateProgressCircle LastExecution=ServerService.LastUpdate.Value />
-}
 
 <RadzenDataGrid @ref=_grid Count=@_items.Count() Data=@_items PageSize=25 PagerAlwaysVisible=true AllowColumnReorder=true AllowFiltering=true
                 FilterPopupRenderMode=PopupRenderMode.OnDemand AllowColumnResize=true FilterMode=Radzen.FilterMode.Advanced AllowPaging=true AllowSorting=true
@@ -160,14 +154,10 @@
     /// </summary>
     protected override void OnInitialized()
     {
+        base.OnInitialized();
+
         _items = ServerService.GetCachedItems();
         ServerService.OnDataUpdated += UpdateItems;
-    }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-            await JSRuntime.InvokeVoidAsync("moveProgressIndicator");
     }
 
     /// <summary>

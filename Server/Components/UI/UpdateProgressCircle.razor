@@ -1,30 +1,43 @@
 ﻿@implements IDisposable
 
 @inject PeriodicExecutorFactory PeriodicExecutorFactory
+@inject ServerService ServerService
+@inject TooltipService TooltipService
 
 <RadzenProgressBarCircular Style="font-size: 11px;" ShowValue=true Size=ProgressBarCircularSize.Small
                            ProgressBarStyle=ProgressBarStyle.Primary Mode=ProgressBarMode.Determinate
-                           Value=@_scaledElapsedSeconds>
+                           Value=@_scaledElapsedSeconds MouseEnter=@(elem => TooltipService.Open(elem, "Next Update in", _tooltipOptionsLeft))>
     <Template>@(60 - Math.Floor(_scaledElapsedSeconds * 0.6))</Template>
 </RadzenProgressBarCircular>
 
 @code {
-    [Parameter]
-    public DateTime LastExecution { get; set; }
-
+    private DateTime? _lastUpdate;
     private PeriodicExecutor? _periodicExecutor;
     private double _scaledElapsedSeconds;
+    private TooltipOptions _tooltipOptionsLeft = new() { Position = TooltipPosition.Left };
 
     /// <summary>
-    /// Initializes periodic executor, subscribes to its event and starts executing
+    /// Subscribes to data updated event and starts periodic executor
     /// </summary>
-    protected override void OnParametersSet()
+    protected override void OnInitialized()
     {
+        base.OnInitialized();
+
+        _lastUpdate = ServerService.LastUpdate;
+        ServerService.OnDataUpdated += UpdateLastUpdateDateTime;
+
         _periodicExecutor = PeriodicExecutorFactory.Create(200);
         _periodicExecutor.JobExecuted += HandleJobExecuted;
         _periodicExecutor.StartExecuting();
+    }
 
-        base.OnParametersSet();
+    /// <summary>
+    /// Updates last update date time
+    /// </summary>
+    private void UpdateLastUpdateDateTime()
+    {
+        _lastUpdate = ServerService.LastUpdate;
+        InvokeAsync(StateHasChanged);
     }
 
     /// <summary>
@@ -32,15 +45,18 @@
     /// </summary>
     private void HandleJobExecuted(object? sender, JobExecutedEventArgs e)
     {
-        _scaledElapsedSeconds = Math.Min(100, Math.Round((DateTime.Now - LastExecution).TotalSeconds / 60 * 100));
+        Console.WriteLine(_lastUpdate);
+        _scaledElapsedSeconds = Math.Min(100, Math.Round((DateTime.Now - (_lastUpdate ?? DateTime.Now)).TotalSeconds / 60 * 100));
         InvokeAsync(StateHasChanged);
     }
 
     /// <summary>
-    /// Unsubscribes from periodic executor event and disposes it
+    /// Unsubscribes from data updated event and disposes periodic executor
     /// </summary>
     public void Dispose()
     {
+        ServerService.OnDataUpdated -= UpdateLastUpdateDateTime;
+
         if (_periodicExecutor is null)
             return;
 
