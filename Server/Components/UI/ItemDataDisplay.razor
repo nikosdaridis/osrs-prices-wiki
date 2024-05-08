@@ -1,0 +1,20 @@
+﻿<div class="grid grid-cols-2 gap-4">
+    <h4>@Label</h4>
+    <h4 style="@Style">@GetValue()</h4>
+</div>
+
+@code {
+    [Parameter]
+    public string? Label { get; set; }
+
+    [Parameter]
+    public object? Value { get; set; }
+
+    [Parameter]
+    public string? Style { get; set; }
+
+    [Parameter]
+    public Func<object, string>? Formatter { get; set; }
+
+    private string GetValue() => Formatter?.Invoke(Value ?? "") ?? Value?.ToString() ?? "";
+}

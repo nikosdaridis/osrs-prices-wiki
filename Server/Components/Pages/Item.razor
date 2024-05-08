@@ -8,9 +8,10 @@
 
 <PageTitle>@_item?.Name - OSRS Live GE Price Utilities</PageTitle>
 
-<NavigationHeader />
+<ItemDetails Item=_item />
 
-<h1>@_item?.Name</h1>
+<RadzenDropDown TValue=string Value=@_activeTimeSeriesInterval Data=@_timeSeries.Keys Change=@((args) => OnTimeSeriesPeriodChanged(args.ToString()))
+                class="float-right mr-[8vw] w-[6rem]" />
 
 @if (_item is not null && _activeTimeSeries is not null)
 {
@@ -28,7 +29,8 @@
     private ItemModel? _item;
     private Dictionary<string, TimeSeriesModel?> _timeSeries = new() { { "5m", new() }, { "1h", new() }, { "6h", new() }, { "24h", new() } };
     private TimeSeriesModel? _activeTimeSeries;
-
+    private string _activeTimeSeriesInterval = "5m";
+    private int _timeSeriesUpdateInterval = 60_000;
 
     /// <summary>
     /// Subscribes to data updated event
@@ -55,10 +57,7 @@
         if (_item is null)
             NavigationManager.NavigateTo("/");
 
-        _periodicExecutor?.Dispose();
-        _periodicExecutor = PeriodicExecutorFactory.Create(60_000);
-        _periodicExecutor.JobExecuted += HandleJobExecuted;
-        _periodicExecutor.StartExecuting();
+        ConfigureAndStartExecutor();
 
         StateHasChanged();
     }
@@ -73,16 +72,50 @@
     }
 
     /// <summary>
-    /// Updates time series
+    /// Configures and starts periodic executor
     /// </summary>
-    private void HandleJobExecuted(object? sender, JobExecutedEventArgs e)
+    public void ConfigureAndStartExecutor()
+    {
+        _periodicExecutor?.Dispose();
+        _periodicExecutor = PeriodicExecutorFactory.Create(_timeSeriesUpdateInterval);
+        _periodicExecutor.JobExecuted += (sender, e) => HandleJobExecuted(sender, e, _activeTimeSeriesInterval);
+        _periodicExecutor.StartExecuting();
+    }
+
+    /// <summary>
+    /// Handles job executed event and updates time series
+    /// </summary>
+    private void HandleJobExecuted(object? sender, JobExecutedEventArgs e, string timeSeriesKey)
     {
         InvokeAsync(async () =>
-           {
-               _timeSeries["5m"] = await ServerService.GetTimeseriesAsync("5m", _item!.Id);
-               _activeTimeSeries = _timeSeries["5m"];
-               StateHasChanged();
-           });
+        {
+            _timeSeries[timeSeriesKey] = await ServerService.GetTimeseriesAsync(timeSeriesKey, _item!.Id);
+            _activeTimeSeries = _timeSeries[timeSeriesKey];
+
+            StateHasChanged();
+        });
+    }
+
+    /// <summary>
+    /// Updates time series when period is changed
+    /// </summary>
+    private void OnTimeSeriesPeriodChanged(string? newPeriod)
+    {
+        if (string.IsNullOrWhiteSpace(newPeriod) || string.Equals(_activeTimeSeriesInterval, newPeriod))
+            return;
+
+        _activeTimeSeriesInterval = newPeriod;
+
+        _timeSeriesUpdateInterval = _activeTimeSeriesInterval switch
+        {
+            "5m" => 60_000,
+            "1h" => 300_000,
+            "6h" => 1_800_000,
+            "24h" => 3_600_000,
+            _ => 60_000
+        };
+
+        ConfigureAndStartExecutor();
     }
 
     /// <summary>
@@ -95,7 +128,9 @@
         if (_periodicExecutor is null)
             return;
 
-        _periodicExecutor.JobExecuted -= HandleJobExecuted;
+        foreach (string timeSeriesKey in _timeSeries.Keys)
+            _periodicExecutor.JobExecuted -= new((sender, e) => HandleJobExecuted(sender, e, timeSeriesKey));
+
         _periodicExecutor.Dispose();
     }
 }

@@ -3,19 +3,12 @@
 @inject ServerService ServerService
 
 <div class="flex p-3 shadow-10 bg-[#38474e] justify-between">
-    @if (NavigationManager.Uri != NavigationManager.BaseUri)
-    {
         <NavLink href="/">
             <RadzenButton Icon="home" ButtonStyle=ButtonStyle.Light MouseEnter=@(elem => TooltipService.Open(elem, "Home", _tooltipOptionsRight)) />
-        </NavLink>
-    }
-    else
-    {
-        <RadzenButton Icon="home" ButtonStyle=ButtonStyle.Light Disabled=true MouseEnter=@(elem => TooltipService.Open(elem, "Home", _tooltipOptionsRight)) />
-    }
+        </NavLink>    
 
     <RadzenAutoComplete ValueChanged=@OnAutoCompleteValueChanged Data=@_items TextProperty=Name
-                        MinLength=2 Style="width: 22rem" Placeholder="Search for item"
+                        MinLength=2 class="w-[20rem]" Placeholder="Search for item"
                         FilterOperator=StringFilterOperator.Contains FilterCaseSensitivity=FilterCaseSensitivity.CaseInsensitive>
         <Template>
             <NavLink class="flex items-center space-x-4" href=@($"/{StringUtility.BuildUri(context.Id.ToString(), context.Name, '-' )}")>

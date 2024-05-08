@@ -1,3 +1,10 @@
 ﻿@import "tailwindcss/base";
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
+
+:root {
+    --color-primary: 199, 16%, 26%;
+    --color-secondary: 198, 20%, 20%;
+    --color-highlight: 14, 100%, 63%;
+    --color-text: 225, 29%, 97%;
+}

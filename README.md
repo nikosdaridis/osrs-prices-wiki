@@ -8,6 +8,7 @@
 
 <div align="center">
   <img alt="Screenshot" width="800" src=https://github.com/nikosdaridis/osrs-prices-wiki/raw/main/Screenshot1.png>
+  <img alt="Screenshot" width="800" src=https://github.com/nikosdaridis/osrs-prices-wiki/raw/main/Screenshot2.png>
 </div>
 
 ## 🛠 Installation

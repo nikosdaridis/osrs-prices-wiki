@@ -45,7 +45,6 @@
     /// </summary>
     private void HandleJobExecuted(object? sender, JobExecutedEventArgs e)
     {
-        Console.WriteLine(_lastUpdate);
         _scaledElapsedSeconds = Math.Min(100, Math.Round((DateTime.Now - (_lastUpdate ?? DateTime.Now)).TotalSeconds / 60 * 100));
         InvokeAsync(StateHasChanged);
     }
