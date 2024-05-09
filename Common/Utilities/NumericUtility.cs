@@ -23,22 +23,24 @@ namespace Common.Utilities
         }
 
         /// <summary>
-        /// Formats seconds to relative datetime based on client datetime (Today time, Yesterday time, Last Date time, Date time)
+        /// Formats seconds to relative datetime based on client datetime and interval (Today time, Yesterday time, Last Date time, Date time)
         /// </summary>
-        public static string FormatSecondsToRelativeDateTime(long seconds, DateTime clientDateTime, TimeZoneInfo clientTimeZone)
+        public static string FormatSecondsToRelativeDateTime(long seconds, DateTime clientDateTime, TimeZoneInfo clientTimeZone, string? interval = null)
         {
             DateTime targetDateTime = TimeZoneInfo.ConvertTimeFromUtc(
                 DateTime.UnixEpoch.AddSeconds(seconds).ToUniversalTime(), clientTimeZone);
 
             int daysDifference = (int)(clientDateTime.Date - targetDateTime.Date).TotalDays;
 
-            return daysDifference switch
+            string date = daysDifference switch
             {
-                <= 0 => $"Today {targetDateTime:HH:mm}",
-                1 => $"Yesterday {targetDateTime:HH:mm}",
-                _ when daysDifference > 1 && daysDifference < 7 => $"Last {targetDateTime.ToString("dddd", _englishCulture)} {targetDateTime:HH:mm}",
-                _ => $"{targetDateTime:dd/MM/yy H:mm}"
+                0 => "Today",
+                1 => "Yesterday",
+                _ when daysDifference > 1 && daysDifference < 7 => $"Last {targetDateTime.ToString("dddd", _englishCulture)}",
+                _ => targetDateTime.ToString("dd/MM/yy")
             };
+
+            return interval == "24h" ? date : $"{date} {targetDateTime:HH:mm}";
         }
 
         /// <summary>

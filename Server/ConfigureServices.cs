@@ -23,7 +23,7 @@ namespace Server
             builder.Services.AddECharts();
 
             AddSettings(builder);
-            ConfigureSerilog();
+            ConfigureSerilog(builder.Configuration.GetSection(nameof(SerilogValues)).Get<SerilogValues>());
             builder.Services.AddLogging(loggingBuilder => loggingBuilder.AddSerilog(dispose: true));
             ApplicationServicesRegistration.AddApplicationServices(builder.Services);
             InfrastructureServicesRegistration.AddInfrastructureServices(builder.Services);
@@ -38,12 +38,15 @@ namespace Server
         /// <summary>
         /// Configures Serilog
         /// </summary>
-        private static void ConfigureSerilog()
+        private static void ConfigureSerilog(SerilogValues? serilogValues)
         {
+            if (serilogValues is null)
+                throw new Exception("SerilogValues not found in appsettings");
+
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Information()
                 .WriteTo.File(
-                    RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ? "/var/log/serilog/.log" : @"C:\logs\osrspriceswiki\.log",
+                    RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ? serilogValues.LinuxPath! : serilogValues.WindowsPath!,
                     fileSizeLimitBytes: 200 * 1024 * 1024,
                     rollingInterval: RollingInterval.Day,
                     rollOnFileSizeLimit: true,

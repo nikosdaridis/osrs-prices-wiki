@@ -5,13 +5,13 @@ namespace Application.Helpers
     public static class CSSHelper
     {
         // Red to Green colors
-        private static readonly string[] Colors = ["#fa0000", "#ff3838", "#ff7a7a", "#ffb8b8", "#ffffff", "#b8ffb8", "#7aff7a", "#38ff38", "#00ff00"];
+        private static readonly string[] Colors = ["#e9687e", "#e6516a", "#ee8b9c", "#f7c5cd", "#ffffff", "#d1ebd3", "#a2d7a7", "#74c37a", "#6fc276"];
 
         // Maps types to value thresholds, order and color range
         private static readonly Dictionary<string, (double[], Order, ColorRange)> TypeConfigs = new()
         {
             { "Margin", (new double[] { -1_000_000, -100_000, -10_000, -1, 1_000, 10_000, 100_000, 1_000_000 }, Order.Ascending, ColorRange.RedToGreen) },
-            { "RoiPercentage", (new double[] { -10, -5, -2.5, -0.001, 0, 0.1, 1, 3 }, Order.Ascending, ColorRange.RedToGreen) },
+            { "RoiPercentage", (new double[] { -10, -5, -2, -0.001, 0, 0.1, 2, 5 }, Order.Ascending, ColorRange.RedToGreen) },
             { "MarginX",(new double[] { -10_000_000, -1_000_000, -100_000, -1, 10_000, 100_000, 1_000_000, 10_000_000 }, Order.Ascending, ColorRange.RedToGreen) },
             { "Volume", (new double[] { 1_000, 10_000, 100_000, 1_000_000 }, Order.Ascending, ColorRange.WhiteToGreen) },
             { "InstaTime", (new double[] { 2_628_000, 860_400, 86_400, 43_200, 7_200, 3_600, 1_800, 600 }, Order.Descending, ColorRange.RedToGreen) }

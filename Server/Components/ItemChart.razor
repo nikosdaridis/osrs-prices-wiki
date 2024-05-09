@@ -7,6 +7,9 @@
     [Parameter]
     public TimeSeriesModel? TimeSeries { get; set; }
 
+    [Parameter]
+    public string ActiveTimeSeriesInterval { get; set; } = "5m";
+
     private EChartsOption<OptionsLine.Line>? _chartOption;
     private DateTime _clientLocalTime = DateTime.UtcNow;
     private TimeZoneInfo _clientTimeZone = TimeZoneInfo.Utc;
@@ -27,29 +30,37 @@
         _chartOption = new()
             {
                 Animation = true,
+                TextStyle = new() { Color = "#f6f7fa", FontFamily = "Poppins" },
                 Legend = new()
                 {
                     Top = 10,
-                    Data = new[] { "Insta Buy Price", "Insta Sell Price", "Insta Buy Volume", "Insta Sell Volume" },
-                    TextStyle = new() { Color = "#ffffff" }
+                    Data = new[] 
+                    {
+                    new { Name = "Insta Buy Price", Icon = "circle" },
+                    new { Name = "Insta Sell Price", Icon = "circle" },
+                    new { Name = "Insta Buy Volume", Icon = "roundRect" },
+                    new { Name ="Insta Sell Volume", Icon = "roundRect" }
+                    },
+                    TextStyle = new() { Color = "#f6f7fa" },
+                    InactiveColor = "#cccccc",
+                    ItemGap = 30
                 },
                 Tooltip = new()
                 {
                     Trigger = TooltipTrigger.Axis,
                     AxisPointer = new() { Type = AxisPointerType.Shadow },
-                    BorderColor = "#ccc",
+                    BorderColor = "#cccccc",
                     Padding = 10,
                     Formatter = new JFunc() { RAW = _rawJsTooltipFormatter }
                 },
                 AxisPointer = new()
                 {
-                    Link = new() { XAxisIndex = "all" },
-                    Label = new() { BackgroundColor = "#ffffff" }
+                    Link = new() { XAxisIndex = "all" }
                 },
                 Grid = [
-                    new() {Left = "10%", Right = "8%", Height = "40%"},
-                    new() {Left = "10%", Right = "8%", Top = "65%", Height = "10%"},
-                    new() {Left = "10%", Right = "8%", Top = "75%", Height = "10%"},
+                    new() {Left = "10%", Right = "10%", Height = "40%"},
+                    new() {Left = "10%", Right = "10%", Top = "65%", Height = "10%"},
+                    new() {Left = "10%", Right = "10%", Top = "75%", Height = "10%"},
                 ],
                 XAxis = [
                     new() {
@@ -109,27 +120,31 @@
                         Name = "Insta Buy Price",
                         Type = "line",
                         ConnectNulls = true,
-                        LineStyle = new(){ Color = "#00ff00" }
+                        LineStyle = new(){ Color = "#22bb33" },
+                        ItemStyle = new(){ Color = "#22bb33" },
+                        ShowSymbol = false
                     },
                     new OptionsLine.Line() {
                         Name = "Insta Sell Price",
                         Type = "line",
                         ConnectNulls = true,
-                        LineStyle = new(){ Color = "#ff0000" }
+                        LineStyle = new(){ Color = "#dd1144" },
+                        ItemStyle = new(){ Color = "#dd1144" },
+                        ShowSymbol = false
                     },
                      new OptionsBar.Bar() {
                         Name = "Insta Buy Volume",
                         Type = "bar",
-                        ItemStyle = new() { Color = "#00bcd4" },
+                        ItemStyle = new() { Color = "#00b3e1" },
                         XAxisIndex = 1,
-                        YAxisIndex = 1,
+                        YAxisIndex = 1
                     },
                     new OptionsBar.Bar() {
                         Name = "Insta Sell Volume",
                         Type = "bar",
-                        ItemStyle = new() { Color = "#f57c00" },
+                        ItemStyle = new() { Color = "#e86100" },
                         XAxisIndex = 2,
-                        YAxisIndex = 2,
+                        YAxisIndex = 2
                     }]
             };
 
@@ -147,7 +162,8 @@
         await UpdateClientTimeInfo();
 
         foreach (XAxis xAxis in _chartOption.XAxis)
-            xAxis.Data = TimeSeries.Data.Select(timeSeries => NumericUtility.FormatSecondsToRelativeDateTime(timeSeries.Timestamp, _clientLocalTime, _clientTimeZone));
+            xAxis.Data = TimeSeries.Data.Select(timeSeries => NumericUtility.FormatSecondsToRelativeDateTime(
+                timeSeries.Timestamp, _clientLocalTime, _clientTimeZone, ActiveTimeSeriesInterval));
 
         (_chartOption.Series[0] as OptionsLine.Line)!.Data = TimeSeries.Data.Select(timeSeries => timeSeries.AvgHighPrice);
         (_chartOption.Series[1] as OptionsLine.Line)!.Data = TimeSeries.Data.Select(timeSeries => timeSeries.AvgLowPrice);

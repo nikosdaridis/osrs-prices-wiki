@@ -48,10 +48,10 @@ function tooltipFormatter(params: TooltipItem[]): string {
 
     eChartParams.Series?.forEach(item => {
         const seriesContainer = `
-        <div style="margin-top:10px;">
+        <div style="margin-top:10px;font-size:14px;color:#000000;">
             <div>${item.marker}
-                <span style="font-size:14px;color:#000;font-weight:500;margin-left:2px">${item.name}</span>
-                <span style="float:right;margin-left:20px;font-size:14px;color:#000;font-weight:800">${item.value ? new Intl.NumberFormat().format(item.value) : "-"}</span>
+                <span style="font-weight:500;margin-left:2px">${item.name}</span>
+                <span style=";font-weight:800;float:right;margin-left:20px">${item.value ? new Intl.NumberFormat().format(item.value) : "-"}</span>
             </div>
         </div>
         `;

@@ -15,7 +15,7 @@
 
 @if (_item is not null && _activeTimeSeries is not null)
 {
-    <ItemChart TimeSeries=_activeTimeSeries />
+    <ItemChart TimeSeries=_activeTimeSeries ActiveTimeSeriesInterval=@_activeTimeSeriesInterval />
 }
 
 @code {
