@@ -1,4 +1,6 @@
-﻿<ELine Option=_chartOption class="mt-[3rem] h-[400px]" />
+﻿<ELine Option=_chartOption class="mt-[2rem] h-[500px]" />
+
+@implements IDisposable
 
 @inject IWebHostEnvironment Environment
 @inject IJSRuntime JSRuntime
@@ -10,22 +12,29 @@
     [Parameter]
     public string ActiveTimeSeriesInterval { get; set; } = "5m";
 
+    private DotNetObjectReference<ItemChart>? _itemChartRef;
     private EChartsOption<OptionsLine.Line>? _chartOption;
-    private DateTime _clientLocalTime = DateTime.UtcNow;
-    private TimeZoneInfo _clientTimeZone = TimeZoneInfo.Utc;
-    private string? _rawJsTooltipFormatter;
-    private string? _rawJsYAxisLabelFormatter;
+    private (DateTime Time, TimeZoneInfo TimeZone) _clientLocalTimeInfo = (DateTime.UtcNow, TimeZoneInfo.Utc);
+    private (int Start, int End) _dataZoomInfo = (0, 100);
+    private (string? Tooltip, string? AxisLabel) _rawJSFormatters;
 
     /// <summary>
-    /// Initializes chart option
+    /// Initializes chart
     /// </summary>
     protected override async Task OnInitializedAsync()
     {
+        await base.OnInitializedAsync();
+
         if (TimeSeries is null)
             return;
 
-        _rawJsTooltipFormatter = (await File.ReadAllTextAsync(Path.Combine(Environment.WebRootPath, "eChartsTooltipFormatter.js"))).Replace("\"use strict\";", "");
-        _rawJsYAxisLabelFormatter = (await File.ReadAllTextAsync(Path.Combine(Environment.WebRootPath, "eChartsYAxisLabelFormatter.js"))).Replace("\"use strict\";", "");
+        _itemChartRef = DotNetObjectReference.Create(this);
+        await JSRuntime.InvokeVoidAsync("eChartsInterop.initializeDataZoomHandler", _itemChartRef);
+
+        _rawJSFormatters.Tooltip = (await File.ReadAllTextAsync(
+            Path.Combine(Environment.WebRootPath, "JavaScript/eChartsTooltipFormatter.js"))).Replace("\"use strict\";", "");
+        _rawJSFormatters.AxisLabel = (await File.ReadAllTextAsync(
+            Path.Combine(Environment.WebRootPath, "JavaScript/eChartsYAxisLabelFormatter.js"))).Replace("\"use strict\";", "");
 
         _chartOption = new()
             {
@@ -33,13 +42,12 @@
                 TextStyle = new() { Color = "#f6f7fa", FontFamily = "Poppins" },
                 Legend = new()
                 {
-                    Top = 10,
-                    Data = new[] 
+                    Data = new[]
                     {
-                    new { Name = "Insta Buy Price", Icon = "circle" },
-                    new { Name = "Insta Sell Price", Icon = "circle" },
-                    new { Name = "Insta Buy Volume", Icon = "roundRect" },
-                    new { Name ="Insta Sell Volume", Icon = "roundRect" }
+                        new { Name = "Insta Buy Price", Icon = "circle" },
+                        new { Name = "Insta Sell Price", Icon = "circle" },
+                        new { Name = "Insta Buy Volume", Icon = "roundRect" },
+                        new { Name = "Insta Sell Volume", Icon = "roundRect" }
                     },
                     TextStyle = new() { Color = "#f6f7fa" },
                     InactiveColor = "#cccccc",
@@ -51,14 +59,14 @@
                     AxisPointer = new() { Type = AxisPointerType.Shadow },
                     BorderColor = "#cccccc",
                     Padding = 10,
-                    Formatter = new JFunc() { RAW = _rawJsTooltipFormatter }
+                    Formatter = new JFunc() { RAW = _rawJSFormatters.Tooltip }
                 },
                 AxisPointer = new()
                 {
                     Link = new() { XAxisIndex = "all" }
                 },
                 Grid = [
-                    new() {Left = "10%", Right = "10%", Height = "40%"},
+                    new() {Left = "10%", Right = "10%", Top = "14%", Height = "40%"},
                     new() {Left = "10%", Right = "10%", Top = "65%", Height = "10%"},
                     new() {Left = "10%", Right = "10%", Top = "75%", Height = "10%"},
                 ],
@@ -79,41 +87,48 @@
                         Type = AxisType.Category,
                         GridIndex = 2,
                         AxisLabel = new() { Show = false },
-                        BoundaryGap = true
+                        BoundaryGap = true,
                     }],
                 YAxis = [
                     new(){
                         Scale = true,
-                        AxisLabel = new(){ Formatter = new JFunc() { RAW = _rawJsYAxisLabelFormatter } }
+                        AxisLabel = new(){ Formatter = new JFunc() { RAW = _rawJSFormatters.AxisLabel } },
+                        Type = AxisType.Value,
+                        BoundaryGap = true
                     },
                     new(){
                         Scale = true, GridIndex = 1,
                         SplitNumber = 2,
                         SplitLine = new(){ Show = false },
-                        AxisLabel = new(){ Formatter = new JFunc() { RAW = _rawJsYAxisLabelFormatter } }
+                        AxisLabel = new(){ Formatter = new JFunc() { RAW = _rawJSFormatters.AxisLabel } },
+                        Type = AxisType.Value,
+                        BoundaryGap = true
                     },
                     new(){
                         Scale = true,
                         GridIndex = 2,
                         SplitNumber = 2,
                         SplitLine = new(){ Show = false },
-                        AxisLabel = new(){ Formatter = new JFunc() { RAW = _rawJsYAxisLabelFormatter } },
+                        AxisLabel = new(){ Formatter = new JFunc() { RAW = _rawJSFormatters.AxisLabel } },
+                        Type = AxisType.Value,
+                        BoundaryGap = true,
                         Inverse = true
                     }],
                 DataZoom = [
-                    new DataZoom("inside")
+                    new DataZoomInside
                     {
                         XAxisIndex = new[] { 0, 1, 2 },
-                        Start = 0,
-                        End = 100,
+                        Start = _dataZoomInfo.Start,
+                        End = _dataZoomInfo.End,
                         Realtime = true,
                     },
-                    new DataZoom("slider")
+                    new DataZoomSlider
                     {
                         XAxisIndex = new[] { 0, 1, 2 },
-                        Start = 0,
-                        End = 100,
-                        Realtime = true
+                        Start = _dataZoomInfo.Start,
+                        End = _dataZoomInfo.End,
+                        Realtime = true,
+                        TextStyle = new() { Color = "#f6f7fa" }
                     }],
                 Series = [
                     new OptionsLine.Line() {
@@ -147,8 +162,6 @@
                         YAxisIndex = 2
                     }]
             };
-
-        await base.OnInitializedAsync();
     }
 
     /// <summary>
@@ -156,22 +169,13 @@
     /// </summary>
     protected override async Task OnParametersSetAsync()
     {
-        if (_chartOption is null || TimeSeries?.Data is null)
-            return;
+        await base.OnParametersSetAsync();
 
         await UpdateClientTimeInfo();
-
-        foreach (XAxis xAxis in _chartOption.XAxis)
-            xAxis.Data = TimeSeries.Data.Select(timeSeries => NumericUtility.FormatSecondsToRelativeDateTime(
-                timeSeries.Timestamp, _clientLocalTime, _clientTimeZone, ActiveTimeSeriesInterval));
-
-        (_chartOption.Series[0] as OptionsLine.Line)!.Data = TimeSeries.Data.Select(timeSeries => timeSeries.AvgHighPrice);
-        (_chartOption.Series[1] as OptionsLine.Line)!.Data = TimeSeries.Data.Select(timeSeries => timeSeries.AvgLowPrice);
-        (_chartOption.Series[2] as OptionsBar.Bar)!.Data = TimeSeries.Data.Select(timeSeries => timeSeries.HighPriceVolume);
-        (_chartOption.Series[3] as OptionsBar.Bar)!.Data = TimeSeries.Data.Select(timeSeries => timeSeries.LowPriceVolume);
+        UpdateSeries();
+        UpdateDataZoom();
 
         await InvokeAsync(StateHasChanged);
-        await base.OnParametersSetAsync();
     }
 
     /// <summary>
@@ -182,9 +186,58 @@
         (DateTime? datetime, TimeZoneInfo? timezone) = await DateTimeUtility.GetClientLocalTime(JSRuntime);
 
         if (datetime is not null)
-            _clientLocalTime = datetime.Value;
+            _clientLocalTimeInfo.Time = datetime.Value;
 
         if (timezone is not null)
-            _clientTimeZone = timezone;
+            _clientLocalTimeInfo.TimeZone = timezone;
     }
+
+    /// <summary>
+    /// Updates chart series with current time series data
+    /// </summary>
+    private void UpdateSeries()
+    {
+        if (_chartOption?.DataZoom is null || TimeSeries?.Data is null)
+            return;
+
+        foreach (XAxis xAxis in _chartOption.XAxis)
+            xAxis.Data = TimeSeries.Data.Select(timeSeries => NumericUtility.FormatSecondsToRelativeDateTime(
+                timeSeries.Timestamp, _clientLocalTimeInfo.Time, _clientLocalTimeInfo.TimeZone, ActiveTimeSeriesInterval));
+
+        (_chartOption.Series[0] as OptionsLine.Line)!.Data = TimeSeries.Data.Select(timeSeries => timeSeries.AvgHighPrice);
+        (_chartOption.Series[1] as OptionsLine.Line)!.Data = TimeSeries.Data.Select(timeSeries => timeSeries.AvgLowPrice);
+        (_chartOption.Series[2] as OptionsBar.Bar)!.Data = TimeSeries.Data.Select(timeSeries => timeSeries.HighPriceVolume);
+        (_chartOption.Series[3] as OptionsBar.Bar)!.Data = TimeSeries.Data.Select(timeSeries => timeSeries.LowPriceVolume);
+    }
+
+    /// <summary>
+    /// Updates chart dataZoom start and end values
+    /// </summary>
+    [JSInvokable]
+    public void HandleDataZoom(double start, double end)
+    {
+        _dataZoomInfo = ((int)start, (int)end);
+        UpdateDataZoom();
+    }
+
+    /// <summary>
+    /// Updates chart options with dataZoom values
+    /// </summary>
+    private void UpdateDataZoom()
+    {
+        if (_chartOption?.DataZoom is null)
+            return;
+
+        foreach (dynamic dataZoom in _chartOption.DataZoom)
+        {
+            ((dynamic)dataZoom).Start = _dataZoomInfo.Start;
+            ((dynamic)dataZoom).End = _dataZoomInfo.End;
+        }
+    }
+
+    /// <summary>
+    /// Disposes chart helper
+    /// </summary>
+    public void Dispose() =>
+        _itemChartRef?.Dispose();
 }

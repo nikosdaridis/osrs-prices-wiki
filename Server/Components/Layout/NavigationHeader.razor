@@ -2,13 +2,13 @@
 @inject TooltipService TooltipService
 @inject ServerService ServerService
 
-<div class="flex p-3 shadow-10 bg-[#38474e] justify-between">
-        <NavLink href="/">
-            <RadzenButton Icon="home" ButtonStyle=ButtonStyle.Light MouseEnter=@(elem => TooltipService.Open(elem, "Home", _tooltipOptionsRight)) />
-        </NavLink>    
+<div class="shadow-10 flex justify-between bg-[var(--primary-color)] p-3">
+    <NavLink href="/">
+        <RadzenButton Icon="home" ButtonStyle=ButtonStyle.Light MouseEnter=@(elem => TooltipService.Open(elem, "Home", _tooltipOptionsRight)) />
+    </NavLink>
 
     <RadzenAutoComplete ValueChanged=@OnAutoCompleteValueChanged Data=@_items TextProperty=Name
-                        MinLength=2 class="w-[20rem]" Placeholder="Search for item"
+                        MinLength=2 class="w-[10rem] 2sm:w-[15rem] sm:w-[20rem] md:w-[25rem]" Placeholder="Search for item"
                         FilterOperator=StringFilterOperator.Contains FilterCaseSensitivity=FilterCaseSensitivity.CaseInsensitive>
         <Template>
             <NavLink class="flex items-center space-x-4" href=@($"/{StringUtility.BuildUri(context.Id.ToString(), context.Name, '-' )}")>

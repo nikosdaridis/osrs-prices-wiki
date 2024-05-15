@@ -1,4 +1,4 @@
-// Defines structure of parameters for echarts tooltip
+// Defines parameters for echarts tooltip
 interface TooltipItem {
     name: string;
     value: number | [string, number];
@@ -7,7 +7,7 @@ interface TooltipItem {
     marker: string;
 }
 
-// Defines structure for custom echarts tooltip formatter
+// Defines custom echarts tooltip formatter
 interface EChartParams {
     DateTime?: string;
     Series?: {
@@ -24,15 +24,15 @@ interface EChartParams {
     }[];
 }
 
-// Formatter function for echarts tooltip content
+// Formatter for echarts tooltip content
 function tooltipFormatter(params: TooltipItem[]): string {
     const eChartParams: EChartParams = {};
+    eChartParams.Series = [];
 
     params.forEach(item => {
         eChartParams.DateTime = item.name;
 
-        eChartParams.Series = eChartParams.Series || [];
-        eChartParams.Series.push({
+        eChartParams.Series?.push({
             name: item.seriesName,
             value: item.value as number,
             color: item.color,

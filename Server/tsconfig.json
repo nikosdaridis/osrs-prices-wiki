@@ -4,13 +4,13 @@
     "lib": [ "ES2020", "DOM", "DOM.Iterable" ],
     "module": "ESNext",
     "moduleResolution": "node",
-    "outDir": "./wwwroot/",
+    "outDir": "./wwwroot/JavaScript",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "removeComments": true,
     "preserveConstEnums": true,
     "strict": true
   },
-  "include": [ "./wwwroot/**/*.ts" ],
+  "include": [ "./wwwroot/TypeScript/**/*.ts" ],
   "exclude": []
 }

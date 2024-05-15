@@ -1,4 +1,4 @@
-// Formatter function for echarts yAxis labels
+// Formatter for echarts yAxis labels
 function yAxisLabelFormatter(value: number): string {
     if (value < 1_000)
         return value.toString();

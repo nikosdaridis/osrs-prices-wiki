@@ -3,59 +3,57 @@
 @if (Item is null)
     return;
 
-<div class="grid gap-4">
-    <div class="grid ml-[10vw] gap-2">
-        <div class="flex items-center gap-2">
-            <RadzenImage class="flex-shrink-0" Path=@Item.Icon />
-            <h1 class="m-0 align-middle">@Item.Name</h1>
-        </div>
-
-        <div class="flex items-center gap-2">
-            <RadzenImage class="flex-shrink-0" Path=@StringUtility.BuildUri(OptionsOsrsWiki.Value.OldschoolWikiIconsBaseUri,
-                         $"{(Item.Accessibility == Accessibility.Members ? "Member_icon" : "Free-to-play_icon")}.png", '_') />
-            <h4 class="m-0 align-middle">@Item.Examine</h4>
-        </div>
+<div class="mt-6 grid max-w-fit justify-center gap-6 2sm:ml-[10vw] 2sm:justify-start lg:mt-0">
+    <div class="flex items-center gap-2">
+        <RadzenImage class="flex-shrink-0" Path=@Item.Icon />
+        <h1 class="m-0 align-middle">@Item.Name</h1>
     </div>
 
-    <div class="flex items-center justify-center">
-        <div class="flex flex-grow justify-between max-w-[860px]">
-            <div>
-                <ItemDataDisplay Label="Insta Buy" Value=@Item.InstaBuy.ToString("N0") />
+    <div class="flex items-center gap-2">
+        <RadzenImage class="flex-shrink-0" Path=@StringUtility.BuildUri(OptionsOsrsWiki.Value.OldschoolWikiIconsBaseUri,
+                     $"{(Item.Accessibility == Accessibility.Members ? "Member_icon" : "Free-to-play_icon")}.png", '_') />
+        <h4 class="m-0 align-middle">@Item.Examine</h4>
+    </div>
+</div>
 
-                <ItemDataDisplay Label="Latest Buy" Value=@Item.InstaBuyTime Formatter=@(value => $"{NumericUtility.FormatSeconds((long)value)} ago")
-                                 Style=@($"color: {CSSHelper.GetColor(nameof(Item.InstaBuyTime), Item.InstaBuyTime)}") />
+<div class="mt-6 flex flex-col items-center justify-center md:flex-row">
+    <div class="grid gap-4 sm:grid-cols-[auto,auto] sm:gap-10 md:grid-cols-[auto,auto,auto] md:gap-20">
+        <div class="col-span-1">
+            <ItemDataDisplay Label="Insta Buy" Value=@Item.InstaBuy.ToString("N0") />
 
-                <ItemDataDisplay Label="Insta Sell" Value=@Item.InstaSell.ToString("N0") />
+            <ItemDataDisplay Label="Latest Buy" Value=@Item.InstaBuyTime Formatter=@(value => $"{NumericUtility.FormatSeconds((long)value)} ago")
+                             Style=@($"color: {CSSHelper.GetColor(nameof(Item.InstaBuyTime), Item.InstaBuyTime)}") />
 
-                <ItemDataDisplay Label="Latest Sell" Value=@Item.InstaSellTime Formatter=@(value => $"{NumericUtility.FormatSeconds((long)value)} ago")
-                                 Style=@($"color: {CSSHelper.GetColor(nameof(Item.InstaSellTime), Item.InstaSellTime)}") />
-            </div>
+            <ItemDataDisplay Label="Insta Sell" Value=@Item.InstaSell.ToString("N0") />
 
-            <div>
-                <ItemDataDisplay Label="Margin" Value=@Item.Margin Formatter=@(value => NumericUtility.FormatNumber((long)value))
-                                 Style=@($"color: {CSSHelper.GetColor(nameof(Item.Margin), Item.Margin)}") />
+            <ItemDataDisplay Label="Latest Sell" Value=@Item.InstaSellTime Formatter=@(value => $"{NumericUtility.FormatSeconds((long)value)} ago")
+                             Style=@($"color: {CSSHelper.GetColor(nameof(Item.InstaSellTime), Item.InstaSellTime)}") />
+        </div>
 
-                <ItemDataDisplay Label="MarginXLimit" Value=@Item.MarginXLimit Formatter=@(value => NumericUtility.FormatNumber((long)value))
-                                 Style=@($"color: {CSSHelper.GetColor(nameof(Item.MarginXLimit), Item.MarginXLimit)}") />
+        <div class="col-span-1">
+            <ItemDataDisplay Label="Margin" Value=@Item.Margin Formatter=@(value => NumericUtility.FormatNumber((long)value))
+                             Style=@($"color: {CSSHelper.GetColor(nameof(Item.Margin), Item.Margin)}") />
 
-                <ItemDataDisplay Label="MarginXVolume" Value=@Item.MarginXVolume Formatter=@(value => NumericUtility.FormatNumber((long)value))
-                                 Style=@($"color: {CSSHelper.GetColor(nameof(Item.MarginXVolume), Item.MarginXVolume)}") />
+            <ItemDataDisplay Label="MarginXLimit" Value=@Item.MarginXLimit Formatter=@(value => NumericUtility.FormatNumber((long)value))
+                             Style=@($"color: {CSSHelper.GetColor(nameof(Item.MarginXLimit), Item.MarginXLimit)}") />
 
-                <ItemDataDisplay Label="ROI" Value=@Item.RoiPercentage
-                                 Formatter=@(value => (double)value == Math.Floor((double)value) ? $"{value:F0}%" : $"{value:F1}%")
-                                 Style=@($"color: {CSSHelper.GetColor(nameof(Item.RoiPercentage), Item.RoiPercentage)}") />
-            </div>
+            <ItemDataDisplay Label="MarginXVolume" Value=@Item.MarginXVolume Formatter=@(value => NumericUtility.FormatNumber((long)value))
+                             Style=@($"color: {CSSHelper.GetColor(nameof(Item.MarginXVolume), Item.MarginXVolume)}") />
 
-            <div>
-                <ItemDataDisplay Label="Volume" Value=@Item.Volume Formatter=@(value => NumericUtility.FormatNumber((long)value))
-                                 Style=@($"color: {CSSHelper.GetColor(nameof(Item.Volume), Item.Volume)}") />
+            <ItemDataDisplay Label="ROI" Value=@Item.RoiPercentage
+                             Formatter=@(value => (double)value == Math.Floor((double)value) ? $"{value:F0}%" : $"{value:F1}%")
+                             Style=@($"color: {CSSHelper.GetColor(nameof(Item.RoiPercentage), Item.RoiPercentage)}") />
+        </div>
 
-                <ItemDataDisplay Label="Limit" Value=@Item.Limit Formatter=@(value => NumericUtility.FormatNumber((int)value)) />
+        <div class="col-span-1">
+            <ItemDataDisplay Label="Volume" Value=@Item.Volume Formatter=@(value => NumericUtility.FormatNumber((long)value))
+                             Style=@($"color: {CSSHelper.GetColor(nameof(Item.Volume), Item.Volume)}") />
 
-                <ItemDataDisplay Label="High Alch" Value=@Item.HighAlch Formatter=@(value => NumericUtility.FormatNumber((int)value)) />
+            <ItemDataDisplay Label="Limit" Value=@Item.Limit Formatter=@(value => NumericUtility.FormatNumber((int)value)) />
 
-                <ItemDataDisplay Label="Low Alch" Value=@Item.LowAlch Formatter=@(value => NumericUtility.FormatNumber((int)value)) />
-            </div>
+            <ItemDataDisplay Label="High Alch" Value=@Item.HighAlch Formatter=@(value => NumericUtility.FormatNumber((int)value)) />
+
+            <ItemDataDisplay Label="Low Alch" Value=@Item.LowAlch Formatter=@(value => NumericUtility.FormatNumber((int)value)) />
         </div>
     </div>
 </div>

@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
 	<PropertyGroup>
 		<TargetFramework>net8.0</TargetFramework>
@@ -57,13 +57,13 @@
 	</Target>
 
 	<Target Name="CompileTypeScript" BeforeTargets="CompileTailwindCSS" Condition="Exists('tsconfig.json')">
-		<Exec Command="npm run build-typescript" Condition="'$(Configuration)' == 'Debug'" />
-		<Exec Command="npm run release-typescript" Condition="'$(Configuration)' == 'Release'" />
+		<Exec Command="npm run typescript-build" Condition="'$(Configuration)' == 'Debug'" />
+		<Exec Command="npm run typescript-release" Condition="'$(Configuration)' == 'Release'" />
 	</Target>
 
 	<Target Name="CompileTailwindCSS" BeforeTargets="PreBuildEvent">
-		<Exec Command="npm run build-tailwind" Condition="'$(Configuration)' == 'Debug'" />
-		<Exec Command="npm run release-tailwind" Condition="'$(Configuration)' == 'Release'" />
+		<Exec Command="npm run tailwind-build" Condition="'$(Configuration)' == 'Debug'" />
+		<Exec Command="npm run tailwind-release" Condition="'$(Configuration)' == 'Release'" />
 	</Target>
 
 </Project>
