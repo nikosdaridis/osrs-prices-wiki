@@ -400,5 +400,6 @@ FodyWeavers.xsd
 
 # Compiled JavaScript and Tailwind
 Server/wwwroot/**/*.js
-!echarts.min.js
 tailwind-app.css
+!echarts.min.js
+!uglify.js
