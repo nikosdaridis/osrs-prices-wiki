@@ -10,7 +10,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="Blazor.ECharts" Version="1.0.2" />
-		<PackageReference Include="Radzen.Blazor" Version="4.31.1" />
+		<PackageReference Include="Radzen.Blazor" Version="4.31.4" />
 		<PackageReference Include="Serilog" Version="3.1.1" />
 		<PackageReference Include="Serilog.Extensions.Logging" Version="8.0.0" />
 		<PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />

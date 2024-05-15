@@ -30,7 +30,7 @@ namespace Common.Utilities
             DateTime targetDateTime = TimeZoneInfo.ConvertTimeFromUtc(
                 DateTime.UnixEpoch.AddSeconds(seconds).ToUniversalTime(), clientTimeZone);
 
-            int daysDifference = (int)(clientDateTime.Date - targetDateTime.Date).TotalDays;
+            int daysDifference = (int)(TimeZoneInfo.ConvertTime(clientDateTime, clientTimeZone).Date - targetDateTime.Date).TotalDays;
 
             string date = daysDifference switch
             {
