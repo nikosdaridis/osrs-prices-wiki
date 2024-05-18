@@ -2,6 +2,7 @@ module.exports = {
     content: ["./**/*.{razor,html}"],
     theme: {
         extend: {
+
         },
         screens: {
             "2sm": "400px",

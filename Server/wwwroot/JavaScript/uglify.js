@@ -4,32 +4,32 @@ const path = require('path');
 
 (async () => {
     try {
-        const filesToSkip = ['uglify.js', 'echarts.min.js'];
         const files = await glob('./wwwroot/JavaScript/**/*.js');
+        const filesToSkip = ['uglify.js', 'echarts.min.js'];
 
         files.forEach(file => {
             const fileName = path.basename(file);
 
             if (filesToSkip.includes(fileName)) {
-                console.log(`Skipping file: ${file}`);
+                console.log(`Uglify - Skipping file: ${file}`);
                 return;
             }
 
-            exec(`uglifyjs ${file} -o ${file} -c -m`, (err, stdout, stderr) => {
-                if (err) {
-                    console.error(`Error uglifying file ${file}:`, err);
+            exec(`uglifyjs ${file} -o ${file} -c -m`, (error, stdout, stderror) => {
+                if (error) {
+                    console.error(`Uglify - Error file ${file}:`, error);
                     process.exit(1);
                 }
 
-                if (stderr) {
-                    console.error(`Error output for file ${file}:`, stderr);
+                if (stderror) {
+                    console.error(`Uglify - Error output for file ${file}:`, stderror);
                 }
 
                 console.log(`Successfully uglified ${file}`);
             });
         });
-    } catch (err) {
-        console.error('Error finding files:', err);
+    } catch (error) {
+        console.error('Uglify - Error finding files:', error);
         process.exit(1);
     }
 })();

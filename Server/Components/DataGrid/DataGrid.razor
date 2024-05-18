@@ -3,6 +3,11 @@
 @inject IOptions<OsrsWikiValues> OptionsOsrsWiki
 @inject ServerService ServerService
 @inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
+
+<div id="h1-title" class="hidden">
+    <h1 class="text-2xl 2sm:text-3xl">Real-Time OSRS GE Prices</h1>
+</div>
 
 <RadzenDataGrid @ref=_grid Count=@_items.Count() Data=@_items PageSize=25 PagerAlwaysVisible=true AllowColumnReorder=true AllowFiltering=true
                 FilterPopupRenderMode=PopupRenderMode.OnDemand AllowColumnResize=true FilterMode=Radzen.FilterMode.Advanced AllowPaging=true AllowSorting=true
@@ -158,6 +163,17 @@
 
         _items = ServerService.GetCachedItems();
         ServerService.OnDataUpdated += UpdateItems;
+    }
+
+    /// <summary>
+    /// Moves h1 title to datagrid group header
+    /// </summary>
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+
+        if (firstRender)
+            await JSRuntime.InvokeVoidAsync("moveElement", "h1-title", ".rz-group-header", "first");
     }
 
     /// <summary>

@@ -64,6 +64,23 @@ h1:focus {
     border-color: #929292;
 }
 
+.hidden {
+    visibility: hidden;
+}
+
+#h1-title {
+    box-sizing: border-box;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+}
+
+    #h1-title h1 {
+        margin: 0;
+    }
+
 .rz-column-title:has(> span.rzi-sort-asc),
 .rz-column-title:has(> span.rzi-sort-desc) {
     color: var(--highlight-color) !important;
@@ -89,3 +106,16 @@ h1:focus {
     .link p:hover {
         color: var(--highlight-color);
     }
+
+@media (max-width: 600px) {
+    .rz-group-header {
+        flex-direction: column !important;
+        gap: 10px !important;
+    }
+
+    #h1-title,
+    .rz-column-picker {
+        width: 100%;
+        justify-content: center !important;
+    }
+}
