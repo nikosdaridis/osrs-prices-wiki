@@ -3,6 +3,8 @@
 @inject EmailSenderService EmailSenderService
 @inject IOptions<SMTPValues> SMTPValues
 
+<PageTitle>Contact - OSRS GE Price & Flipping Tracker - Live RuneScape Grand Exchange Prices</PageTitle>
+
 <div class="mx-auto mx flex h-full max-w-[90vw] flex-col items-center justify-center">
     <EditForm Model="@_email" OnValidSubmit="HandleSubmit" class="text-center sm:w-[500px] md:w-[600px]">
         <h2 class="inline text-2xl font-bold 2sm:text-3xl lg:text-4xl">Contact</h2>
@@ -46,7 +48,7 @@
         if (EmailSenderService.SendEmail(_smtpValues, _email))
             _messageResult = "Message sent successfully";
         else
-            _messageResult = "Message failed to send";
+            _messageResult = "Message failed to send, try again later";
 
         InvokeAsync(StateHasChanged);
 

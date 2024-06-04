@@ -1,6 +1,7 @@
 ﻿using Application.Models;
 using Application.Models.Settings;
 using MailKit.Net.Smtp;
+using MailKit.Security;
 using Microsoft.Extensions.Logging;
 using MimeKit;
 
@@ -22,8 +23,9 @@ namespace Infrastructure.Services
 
             try
             {
+                CancellationTokenSource cancellationTokenSource = new(TimeSpan.FromSeconds(10));
                 using SmtpClient client = new();
-                client.Connect(smtp.Server, smtp.Port, true);
+                client.Connect(smtp.Server, smtp.Port, SecureSocketOptions.StartTls, cancellationTokenSource.Token);
                 client.Authenticate(smtp.User, smtp.Pass);
 
                 client.Send(message);
@@ -31,6 +33,11 @@ namespace Infrastructure.Services
 
                 logger.LogInformation("Email sent {Subject}", message.Subject);
                 return true;
+            }
+            catch (OperationCanceledException ex)
+            {
+                logger.LogError(ex, "Timeout occurred while sending email {Subject} - {From} - {Body}", message.Subject, message.From, message.Body);
+                return false;
             }
             catch (Exception ex)
             {
