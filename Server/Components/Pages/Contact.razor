@@ -1,0 +1,59 @@
+﻿@page "/contact"
+
+@inject EmailSenderService EmailSenderService
+@inject IOptions<SMTPValues> SMTPValues
+
+<div class="mx-auto mx flex h-full max-w-[90vw] flex-col items-center justify-center">
+    <EditForm Model="@_email" OnValidSubmit="HandleSubmit" class="text-center sm:w-[500px] md:w-[600px]">
+        <h2 class="inline text-2xl font-bold 2sm:text-3xl lg:text-4xl">Contact</h2>
+
+        <div class="mb-3 mt-20 flex flex-wrap justify-between font-medium">
+            <InputText class="w-[49%] rounded-lg border-2 border-[var(--text-color)] bg-[var(--primary-color)] p-2 duration-300 focus:border-[var(--highlight-color)] focus:outline-none focus:ring-0"
+                       @bind-Value="_email.Subject" placeholder="Subject" required />
+            <InputText type="email" class="w-[49%] rounded-lg border-2 bg-[var(--primary-color)] p-2 duration-300 focus:border-[var(--highlight-color)] focus:outline-none focus:ring-0"
+                       @bind-Value="_email.From" placeholder="Email" required />
+        </div>
+
+        <InputTextArea class="h-[250px] w-[100%] rounded-lg border-2 bg-[var(--primary-color)] p-2 font-medium duration-300 focus:border-[var(--highlight-color)] focus:outline-none focus:ring-0"
+                       @bind-Value="_email.Body" placeholder="Message" required />
+
+        @if (!string.IsNullOrWhiteSpace(_messageResult))
+        {
+            <h4 class="@(_messageResult.Contains("successfully") ? "text-[var(--green-color)]" : "text-[var(--red-color)]") mb-[-1rem] mt-4">@_messageResult</h4>
+        }
+
+        <button class="@(string.IsNullOrWhiteSpace(_messageResult) ? "mx-auto my-8 flex items-center rounded-lg border-2 border-highlight px-4 py-3 font-semibold text-text duration-300 hover:bg-highlight" : "hidden")" type="submit">Send Message</button>
+    </EditForm>
+</div>
+
+@code {
+    private SMTPValues _smtpValues = new();
+    private EmailModel _email = new();
+    private string? _messageResult;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        _smtpValues = SMTPValues.Value;
+    }
+
+    /// <summary>
+    /// Sends email and displays success or failure message
+    /// </summary>
+    private void HandleSubmit()
+    {
+        if (EmailSenderService.SendEmail(_smtpValues, _email))
+            _messageResult = "Message sent successfully";
+        else
+            _messageResult = "Message failed to send";
+
+        InvokeAsync(StateHasChanged);
+
+        Timer timer = new(_ =>
+        {
+            _messageResult = "";
+            InvokeAsync(StateHasChanged);
+        }, null, 5000, Timeout.Infinite);
+    }
+}

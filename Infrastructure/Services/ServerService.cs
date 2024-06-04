@@ -1,5 +1,5 @@
-﻿using Application.Models;
-using Application.Models.API;
+﻿using Application.Models.API;
+using Application.Models.Settings;
 using Common;
 using Common.Utilities;
 using Microsoft.Extensions.Options;

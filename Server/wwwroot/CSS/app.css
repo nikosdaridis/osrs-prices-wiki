@@ -10,6 +10,8 @@
     --secondary-color: #28363c;
     --highlight-color: #ff6d41;
     --text-color: #f6f7fa;
+    --red-color: #e9687e;
+    --green-color: #6fc276;
 }
 
 html, body {
@@ -36,14 +38,6 @@ a, .btn-link {
 
 h1:focus {
     outline: none;
-}
-
-.valid.modified:not([type=checkbox]) {
-    outline: 1px solid #26b050;
-}
-
-.invalid {
-    outline: 1px solid #e50000;
 }
 
 .validation-message {
@@ -87,11 +81,11 @@ h1:focus {
 }
 
 .rzi-sort-asc {
-    color: #00ff00 !important;
+    color: var(--green-color) !important;
 }
 
 .rzi-sort-desc {
-    color: #fa0000 !important;
+    color: var(--red-color) !important;
 }
 
 .link {

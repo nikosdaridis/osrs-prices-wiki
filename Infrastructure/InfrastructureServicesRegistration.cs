@@ -12,6 +12,7 @@ namespace Infrastructure
         {
             services.AddSingleton<OSRSWikiHttpClient>();
             services.AddSingleton<ServerService>();
+            services.AddSingleton<EmailSenderService>();
             services.AddHostedService<ServerBackgroundService>();
         }
     }

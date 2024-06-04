@@ -1,5 +1,5 @@
 ﻿using Application;
-using Application.Models;
+using Application.Models.Settings;
 using Infrastructure;
 using Radzen;
 using Serilog;
@@ -32,8 +32,11 @@ namespace Server
         /// <summary>
         /// Adds settings
         /// </summary>
-        private static void AddSettings(WebApplicationBuilder builder) =>
+        private static void AddSettings(WebApplicationBuilder builder)
+        {
+            builder.Services.Configure<SMTPValues>(builder.Configuration.GetSection(nameof(SMTPValues)));
             builder.Services.Configure<OsrsWikiValues>(builder.Configuration.GetSection(nameof(OsrsWikiValues)));
+        }
 
         /// <summary>
         /// Configures Serilog

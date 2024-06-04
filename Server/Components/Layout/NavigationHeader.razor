@@ -4,7 +4,7 @@
 
 <div class="shadow-10 flex justify-between bg-[var(--primary-color)] p-3">
     <NavLink href="/">
-        <RadzenButton Icon="home" ButtonStyle=ButtonStyle.Light MouseEnter=@(elem => TooltipService.Open(elem, "Home", _tooltipOptionsRight)) />
+        <RadzenButton Icon="home" ButtonStyle=ButtonStyle.Light MouseEnter=@(elem => TooltipService.Open(elem, "Home", _tooltipOptionsBottom)) />
     </NavLink>
 
     <RadzenAutoComplete ValueChanged=@OnAutoCompleteValueChanged Data=@_items TextProperty=Name
@@ -22,7 +22,7 @@
 </div>
 
 @code {
-    private TooltipOptions _tooltipOptionsRight = new() { Position = TooltipPosition.Right };
+    private TooltipOptions _tooltipOptionsBottom = new() { Position = TooltipPosition.Bottom };
     private List<ItemModel>? _items;
 
     /// <summary>

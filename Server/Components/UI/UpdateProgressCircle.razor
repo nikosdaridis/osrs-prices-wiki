@@ -6,7 +6,7 @@
 
 <RadzenProgressBarCircular Style="font-size: 11px; align-self: center;" ShowValue=true Size=ProgressBarCircularSize.Small
                            ProgressBarStyle=ProgressBarStyle.Primary Mode=ProgressBarMode.Determinate
-                           Value=@_scaledElapsedSeconds MouseEnter=@(elem => TooltipService.Open(elem, "Next Update in", _tooltipOptionsLeft))>
+                           Value=@_scaledElapsedSeconds MouseEnter=@(elem => TooltipService.Open(elem, "Update in", _tooltipOptionsLeft))>
     <Template>@(60 - Math.Floor(_scaledElapsedSeconds * 0.6))</Template>
 </RadzenProgressBarCircular>
 
