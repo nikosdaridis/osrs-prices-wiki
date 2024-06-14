@@ -1,0 +1,28 @@
+version: 2
+updates:
+  # Configuration for NuGet
+  - package-ecosystem: "nuget"
+    directory: "/Application"
+    schedule:
+      interval: "weekly"
+
+  - package-ecosystem: "nuget"
+    directory: "/Common"
+    schedule:
+      interval: "weekly"
+
+  - package-ecosystem: "nuget"
+    directory: "/Infrastructure"
+    schedule:
+      interval: "weekly"
+
+  - package-ecosystem: "nuget"
+    directory: "/Server"
+    schedule:
+      interval: "weekly"
+
+  # Configuration for npm
+  - package-ecosystem: "npm"
+    directory: "/Server"
+    schedule:
+      interval: "weekly"
