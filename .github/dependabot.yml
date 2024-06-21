@@ -4,25 +4,35 @@ updates:
   - package-ecosystem: "nuget"
     directory: "/Application"
     schedule:
-      interval: "weekly"
+      interval: "daily"
+    labels:
+      - "automerge"
 
   - package-ecosystem: "nuget"
     directory: "/Common"
     schedule:
-      interval: "weekly"
+      interval: "daily"
+    labels:
+      - "automerge"
 
   - package-ecosystem: "nuget"
     directory: "/Infrastructure"
     schedule:
-      interval: "weekly"
+      interval: "daily"
+    labels:
+      - "automerge"
 
   - package-ecosystem: "nuget"
     directory: "/Server"
     schedule:
-      interval: "weekly"
+      interval: "daily"
+    labels:
+      - "automerge"
 
   # Configuration for npm
   - package-ecosystem: "npm"
     directory: "/Server"
     schedule:
-      interval: "weekly"
+      interval: "daily"
+    labels:
+      - "automerge"
