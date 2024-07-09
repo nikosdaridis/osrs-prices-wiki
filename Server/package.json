@@ -12,7 +12,7 @@
     "concurrently": "^8.2.2",
     "cross-env": "^7.0.3",
     "tailwindcss": "^3.4.4",
-    "glob": "^10.4.3",
+    "glob": "^11.0.0",
     "typescript": "^5.5.3",
     "uglify-js": "^3.18.0"
   },
