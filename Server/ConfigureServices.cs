@@ -3,6 +3,7 @@ using Application.Models.Settings;
 using Infrastructure;
 using Radzen;
 using Serilog;
+using Serilog.Events;
 using System.Globalization;
 using System.Runtime.InteropServices;
 
@@ -43,22 +44,27 @@ namespace Server
         /// </summary>
         private static void ConfigureSerilog(SerilogValues? serilogValues)
         {
-            if (serilogValues is null)
-                throw new Exception("SerilogValues not found in appsettings");
+            ArgumentNullException.ThrowIfNull(serilogValues);
+
+            Enum.TryParse(serilogValues.MinimumLevel, true, out LogEventLevel minimumLevel);
 
             Log.Logger = new LoggerConfiguration()
-                .MinimumLevel.Information()
+                .MinimumLevel.Is(minimumLevel)
                 .WriteTo.File(
-                    RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ? serilogValues.LinuxPath! : serilogValues.WindowsPath!,
-                    fileSizeLimitBytes: 200 * 1024 * 1024,
-                    rollingInterval: RollingInterval.Day,
-                    rollOnFileSizeLimit: true,
-                    shared: true,
-                    flushToDiskInterval: TimeSpan.FromSeconds(1),
-                    retainedFileCountLimit: null,
-                    formatProvider: new CultureInfo("en-US")
+                    path: serilogValues.Paths.TryGetValue(GetCurrentOSPlatform(OSPlatform.Linux, OSPlatform.Windows), out string? path) ? path ?? throw new PlatformNotSupportedException() : throw new PlatformNotSupportedException(),
+                    fileSizeLimitBytes: serilogValues.FileSizeLimitBytes,
+                    rollingInterval: serilogValues.RollingInterval,
+                    rollOnFileSizeLimit: serilogValues.RollOnFileSizeLimit,
+                    shared: serilogValues.Shared,
+                    flushToDiskInterval: TimeSpan.FromSeconds(serilogValues.FlushToDiskIntervalSeconds),
+                    retainedFileCountLimit: serilogValues.RetainedFileCountLimit,
+                    formatProvider: new CultureInfo(serilogValues.FormatProviderCulture)
                 )
                 .CreateLogger();
+
+            // Gets current OS Platform
+            static string GetCurrentOSPlatform(params OSPlatform[] supportedPlatforms) =>
+                supportedPlatforms.FirstOrDefault(RuntimeInformation.IsOSPlatform).ToString();
         }
     }
 }

@@ -57,7 +57,7 @@ namespace Infrastructure.Services
         /// Gets item by Id from cached items
         /// </summary>
         public ItemModel? GetCachedItem(int id) =>
-           _items.TryGetValue(id, out ItemModel? item) ? item : null;
+            _items.TryGetValue(id, out ItemModel? item) ? item : null;
 
         /// <summary>
         /// Gets item by Name from cached items
