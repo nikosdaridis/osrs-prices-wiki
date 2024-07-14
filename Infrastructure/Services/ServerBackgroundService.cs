@@ -14,7 +14,8 @@ namespace Infrastructure.Services
             {
                 { nameof(serverService.GetLatestItemsAsync), (serverService.GetLatestItemsAsync, TimeSpan.FromMinutes(1)) },
                 { nameof(serverService.GetMappingAsync), (serverService.GetMappingAsync, TimeSpan.FromMinutes(60)) },
-                { nameof(serverService.GetVolumeAsync), (serverService.GetVolumeAsync, TimeSpan.FromMinutes(60)) }
+                { nameof(serverService.GetVolumeAsync), (serverService.GetVolumeAsync, TimeSpan.FromMinutes(60)) },
+                { nameof(serverService.GenerateSitemapAsync), (serverService.GenerateSitemapAsync, TimeSpan.FromDays(1)) }
             };
 
             Task[] runningTasks = tasks.Select(task => RepeatTaskAsync(task.Key, task.Value.Func, task.Value.Interval, cancellationToken)).ToArray();

@@ -1,4 +1,5 @@
 https://osrsprices.wiki
+https://osrsprices.wiki/contact
 https://osrsprices.wiki/10344/3rd-age-amulet
 https://osrsprices.wiki/20011/3rd-age-axe
 https://osrsprices.wiki/12424/3rd-age-bow
@@ -712,6 +713,8 @@ https://osrsprices.wiki/9434/Bolt-mould
 https://osrsprices.wiki/8790/Bolt-of-cloth
 https://osrsprices.wiki/4740/Bolt-rack
 https://osrsprices.wiki/8882/Bone-bolts
+https://osrsprices.wiki/29574/Bone-claw
+https://osrsprices.wiki/29577/Bone-claws
 https://osrsprices.wiki/5018/Bone-club
 https://osrsprices.wiki/8872/Bone-dagger
 https://osrsprices.wiki/8874/Bone-dagger-(p)
@@ -1052,6 +1055,7 @@ https://osrsprices.wiki/2011/Curry
 https://osrsprices.wiki/5970/Curry-leaf
 https://osrsprices.wiki/5499/Curry-sapling
 https://osrsprices.wiki/5286/Curry-tree-seed
+https://osrsprices.wiki/29486/Cursed-amulet-of-magic
 https://osrsprices.wiki/19915/Cyclops-head
 https://osrsprices.wiki/6729/Dagannoth-bones
 https://osrsprices.wiki/6155/Dagannoth-hide
@@ -3589,6 +3593,7 @@ https://osrsprices.wiki/4751/Torag's-platelegs
 https://osrsprices.wiki/4974/Torag's-platelegs-0
 https://osrsprices.wiki/19544/Tormented-bracelet
 https://osrsprices.wiki/23348/Tormented-ornament-kit
+https://osrsprices.wiki/29580/Tormented-synapse
 https://osrsprices.wiki/21047/Torn-prayer-scroll
 https://osrsprices.wiki/269/Torstol
 https://osrsprices.wiki/111/Torstol-potion-(unf)

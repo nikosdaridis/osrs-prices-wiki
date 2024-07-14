@@ -12,7 +12,7 @@ namespace Infrastructure.Services
         /// <summary>
         /// Sends email using SMTP client
         /// </summary>
-        public bool SendEmail(SMTPValues smtp, EmailModel email)
+        public async Task<bool> SendEmailAsync(SMTPValues smtp, EmailModel email)
         {
             MimeMessage message = new();
             message.From.Add(new MailboxAddress(email.From, email.From));
@@ -28,20 +28,20 @@ namespace Infrastructure.Services
                 client.Connect(smtp.Server, smtp.Port, SecureSocketOptions.StartTls, cancellationTokenSource.Token);
                 client.Authenticate(smtp.User, smtp.Pass);
 
-                client.Send(message);
+                await client.SendAsync(message);
                 client.Disconnect(true);
 
-                logger.LogInformation("Email sent {Subject}", message.Subject);
+                logger.LogInformation("Email sent from {From}", message.From);
                 return true;
             }
             catch (OperationCanceledException ex)
             {
-                logger.LogError(ex, "Timeout occurred while sending email {Subject} - {From} - {Body}", message.Subject, message.From, message.Body);
+                logger.LogError(ex, "Timeout occurred while sending email from {From} - {Subject} - {Body}", message.From, message.Subject, message.Body);
                 return false;
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error sending email {Subject} - {From} - {Body}", message.Subject, message.From, message.Body);
+                logger.LogError(ex, "Error sending email from {From} - {Subject} - {Body}", message.From, message.Subject, message.Body);
                 return false;
             }
         }

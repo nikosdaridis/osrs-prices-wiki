@@ -9,11 +9,11 @@
     "tailwind-release": "cross-env NODE_ENV=production npx tailwindcss -i ./wwwroot/CSS/tailwind.css -o ./wwwroot/CSS/tailwind-app.css --minify"
   },
   "devDependencies": {
-    "concurrently": "^8.2.2",
-    "cross-env": "^7.0.3",
-    "tailwindcss": "^3.4.4",
-    "glob": "^11.0.0",
     "typescript": "^5.5.3",
+    "tailwindcss": "^3.4.4",
+    "cross-env": "^7.0.3",
+    "glob": "^11.0.0",
+    "concurrently": "^8.2.2",
     "uglify-js": "^3.18.0"
   },
   "include": [

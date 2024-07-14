@@ -3,6 +3,7 @@ using Application.Models.Settings;
 using Common;
 using Common.Utilities;
 using Microsoft.Extensions.Options;
+using System.Text;
 
 namespace Infrastructure.Services
 {
@@ -29,6 +30,7 @@ namespace Infrastructure.Services
 
             await GetLatestAsync();
             CombineItemsData();
+            OnDataUpdated?.Invoke();
 
             return _items;
         }
@@ -81,6 +83,32 @@ namespace Infrastructure.Services
         }
 
         /// <summary>
+        /// Gets timeseries of item prices and volume based on timestep and item Id
+        /// </summary>
+        public async Task<TimeSeriesModel?> GetTimeseriesAsync(string timestep, int id) =>
+         await osrsWikiHttpClient.GetAsync<TimeSeriesModel>(StringUtility.BuildUri(
+             optionsOsrsWiki.Value.OSRSPricesWikiBaseUri, optionsOsrsWiki.Value.Timeseries, timestep, id.ToString()));
+
+        /// <summary>
+        /// Generates sitemap.txt in the wwwroot
+        /// </summary>
+        public async Task GenerateSitemapAsync()
+        {
+            while (_items.Count == 0)
+                await Task.Delay(1000);
+
+            StringBuilder sitemapContent = new();
+            sitemapContent.AppendLine("https://osrsprices.wiki");
+            sitemapContent.AppendLine("https://osrsprices.wiki/contact");
+
+            foreach (ItemModel item in _items)
+                sitemapContent.AppendLine($"https://osrsprices.wiki/{StringUtility.BuildUri(item.Id.ToString(), item.Name, '-')}");
+
+            string path = Path.Combine(Path.GetFullPath("wwwroot"), "sitemap.txt");
+            await File.WriteAllTextAsync(path, sitemapContent.ToString());
+        }
+
+        /// <summary>
         /// Gets and caches items latest data and updates last update datetime
         /// </summary>
         private async Task<bool> GetLatestAsync()
@@ -93,16 +121,8 @@ namespace Infrastructure.Services
 
             _latestResponse = latestResponse;
             LastUpdate = DateTime.Now;
-            OnDataUpdated?.Invoke();
             return true;
         }
-
-        /// <summary>
-        /// Gets timeseries of item prices and volume based on timestep and item Id
-        /// </summary>
-        public async Task<TimeSeriesModel?> GetTimeseriesAsync(string timestep, int id) =>
-         await osrsWikiHttpClient.GetAsync<TimeSeriesModel>(StringUtility.BuildUri(
-             optionsOsrsWiki.Value.OSRSPricesWikiBaseUri, optionsOsrsWiki.Value.Timeseries, timestep, id.ToString()));
 
         /// <summary>
         /// Combines mapping, volume and latest data into items list
@@ -117,6 +137,10 @@ namespace Infrastructure.Services
             foreach (MappingModel mapping in _mappingResponse)
             {
                 _latestResponse.Data.TryGetValue(mapping.Id.ToString(), out LatestData? latest);
+
+                if (latest?.High is null || latest?.Low is null)
+                    continue;
+
                 _volumeResponse.TryGetValue(mapping.Name ?? "", out string? volumeString);
                 _ = int.TryParse(volumeString, out int volume);
 
@@ -144,8 +168,7 @@ namespace Infrastructure.Services
                 item.MarginXVolume = item.Margin * volume;
                 item.RoiPercentage = Math.Round(item.InstaSell != 0 ? (float)item.Margin / item.InstaSell * 100 : 0, 2);
 
-                if (item.InstaBuy != int.MinValue && item.InstaSell != int.MinValue)
-                    _items.Add(item);
+                _items.Add(item);
             }
 
             return true;

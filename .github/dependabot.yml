@@ -7,6 +7,8 @@ updates:
       interval: "daily"
     labels:
       - "automerge"
+      - "dependencies"
+      - ".NET"
 
   - package-ecosystem: "nuget"
     directory: "/Common"
@@ -14,6 +16,8 @@ updates:
       interval: "daily"
     labels:
       - "automerge"
+      - "dependencies"
+      - ".NET"
 
   - package-ecosystem: "nuget"
     directory: "/Infrastructure"
@@ -21,6 +25,8 @@ updates:
       interval: "daily"
     labels:
       - "automerge"
+      - "dependencies"
+      - ".NET"
 
   - package-ecosystem: "nuget"
     directory: "/Server"
@@ -28,6 +34,8 @@ updates:
       interval: "daily"
     labels:
       - "automerge"
+      - "dependencies"
+      - ".NET"
 
   # Configuration for npm
   - package-ecosystem: "npm"
@@ -36,3 +44,5 @@ updates:
       interval: "daily"
     labels:
       - "automerge"
+      - "dependencies"
+      - "javascript"
