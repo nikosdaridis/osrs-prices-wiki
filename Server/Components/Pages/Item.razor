@@ -11,7 +11,7 @@
 <ItemDetails Item=_item />
 
 <RadzenDropDown TValue=string Value=@_activeTimeSeriesInterval Data=@_timeSeries.Keys Change=@((args) => OnTimeSeriesPeriodChanged(args.ToString()))
-                class="z-50 float-right mr-[10px] mt-[-3rem] w-[6rem] md:mr-[2vw] md:mt-[3rem] lg:mr-[10vw]" />
+                class="z-50 float-right mr-[10px] mt-[1rem] w-[6rem] md:mr-[2vw] md:mt-[3rem] lg:mr-[10vw]" />
 
 @if (_item is not null && _activeTimeSeries is not null)
 {

@@ -2,13 +2,14 @@
 using Application.Models.Settings;
 using Common;
 using Common.Utilities;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Collections.Concurrent;
 using System.Text;
 
 namespace Infrastructure.Services
 {
-    public class ServerService(OSRSWikiHttpClient osrsWikiHttpClient, IOptions<OsrsWikiValues> optionsOsrsWiki)
+    public class ServerService(OSRSWikiHttpClient osrsWikiHttpClient, IOptions<OsrsWikiValues> optionsOsrsWiki, ILogger<ServerService> logger)
     {
         public event Action? OnDataUpdated;
         public DateTime? LastUpdate;
@@ -38,6 +39,10 @@ namespace Infrastructure.Services
                 await GetLatestAsync();
                 CombineItemsData();
                 OnDataUpdated?.Invoke();
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Failed to get latest items data");
             }
             finally
             {
@@ -99,11 +104,11 @@ namespace Infrastructure.Services
         /// Gets timeseries of item prices and volume based on timestep and item Id
         /// </summary>
         public async Task<TimeSeriesModel?> GetTimeseriesAsync(string timestep, int id) =>
-         await osrsWikiHttpClient.GetAsync<TimeSeriesModel>(StringUtility.BuildUri(
-             optionsOsrsWiki.Value.OSRSPricesWikiBaseUri, optionsOsrsWiki.Value.Timeseries, timestep, id.ToString()));
+            await osrsWikiHttpClient.GetAsync<TimeSeriesModel>(StringUtility.BuildUri(
+                optionsOsrsWiki.Value.OSRSPricesWikiBaseUri, optionsOsrsWiki.Value.Timeseries, timestep, id.ToString()));
 
         /// <summary>
-        /// Generates sitemap.txt in the wwwroot
+        /// Generates sitemap.txt in wwwroot
         /// </summary>
         public async Task GenerateSitemapAsync()
         {
@@ -138,7 +143,7 @@ namespace Infrastructure.Services
         }
 
         /// <summary>
-        /// Combines mapping, volume and latest data into items list
+        /// Combines all data into items dictionary
         /// </summary>
         private bool CombineItemsData()
         {

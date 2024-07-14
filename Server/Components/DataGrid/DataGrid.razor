@@ -61,7 +61,7 @@
                               FilterOperator=FilterOperator.GreaterThanOrEquals SecondFilterOperator=FilterOperator.LessThanOrEquals>
             <Template Context=item>
                 <RadzenText Style=@($"color: {CSSHelper.GetColor(nameof(item.RoiPercentage), item.RoiPercentage)}")
-                            Text=@(item.RoiPercentage == Math.Floor(item.RoiPercentage) ? $"{item.RoiPercentage:F0}%" : $"{item.RoiPercentage:F1}%") />
+                            Text=@(item.RoiPercentage == Math.Floor(item.RoiPercentage) ? $"{item.RoiPercentage:F0}%" : $"{item.RoiPercentage:F2}%") />
             </Template>
         </CustomDataGridColumn>
         <CustomDataGridColumn Property=Volume Title=Volume Width="50px" MinWidth="50px" FilterValue=_volumeFilter.Value

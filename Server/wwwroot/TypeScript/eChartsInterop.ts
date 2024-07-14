@@ -44,7 +44,7 @@ window.eChartsInterop = {
                 const { start, end } = params.batch ? params.batch[0] : params
 
                 if (typeof start === 'number' && typeof end === 'number') {
-                    itemChartRef.invokeMethodAsync('HandleDataZoom', Math.round(start), Math.round(end));
+                    itemChartRef.invokeMethodAsync('HandleDataZoom', start, end);
                 }
             });
         }

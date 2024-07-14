@@ -3,7 +3,7 @@
 @inject IWebHostEnvironment Environment
 @inject IJSRuntime JSRuntime
 
-<ELine Option=_chartOption class="mt-[2rem] h-[500px]" />
+<ELine Option=_chartOption class="mt-[4rem] h-[500px] md:mt-[2rem]" />
 
 @code {
     [Parameter]
@@ -15,8 +15,8 @@
     private DotNetObjectReference<ItemChart>? _itemChartRef;
     private EChartsOption<OptionsLine.Line>? _chartOption;
     private (DateTime Time, TimeZoneInfo TimeZone) _clientLocalTimeInfo = (DateTime.UtcNow, TimeZoneInfo.Utc);
-    private (int Start, int End) _dataZoomInfo = (0, 100);
-    private (string? Tooltip, string? AxisLabel) _rawJSFormatters;
+    private (double Start, double End) _dataZoomInfo = (0, 100);
+    private (string? Tooltip, string? YAxisLabel) _rawJSFormatters;
 
     /// <summary>
     /// Initializes chart
@@ -31,10 +31,8 @@
         _itemChartRef = DotNetObjectReference.Create(this);
         await JSRuntime.InvokeVoidAsync("eChartsInterop.initializeDataZoomHandler", _itemChartRef);
 
-        _rawJSFormatters.Tooltip = (await File.ReadAllTextAsync(
-            Path.Combine(Environment.WebRootPath, "JavaScript/eChartsTooltipFormatter.js"))).Replace("\"use strict\";", "");
-        _rawJSFormatters.AxisLabel = (await File.ReadAllTextAsync(
-            Path.Combine(Environment.WebRootPath, "JavaScript/eChartsYAxisLabelFormatter.js"))).Replace("\"use strict\";", "");
+        _rawJSFormatters.Tooltip = await LoadRawJSFileAsync("eChartsTooltipFormatter.js");
+        _rawJSFormatters.YAxisLabel = await LoadRawJSFileAsync("eChartsYAxisLabelFormatter.js");
 
         _chartOption = new()
             {
@@ -92,7 +90,7 @@
                 YAxis = [
                     new(){
                         Scale = true,
-                        AxisLabel = new(){ Formatter = new JFunc() { RAW = _rawJSFormatters.AxisLabel } },
+                        AxisLabel = new(){ Formatter = new JFunc() { RAW = _rawJSFormatters.YAxisLabel } },
                         Type = AxisType.Value,
                         BoundaryGap = true
                     },
@@ -100,7 +98,7 @@
                         Scale = true, GridIndex = 1,
                         SplitNumber = 2,
                         SplitLine = new(){ Show = false },
-                        AxisLabel = new(){ Formatter = new JFunc() { RAW = _rawJSFormatters.AxisLabel } },
+                        AxisLabel = new(){ Formatter = new JFunc() { RAW = _rawJSFormatters.YAxisLabel } },
                         Type = AxisType.Value,
                         BoundaryGap = true
                     },
@@ -109,7 +107,7 @@
                         GridIndex = 2,
                         SplitNumber = 2,
                         SplitLine = new(){ Show = false },
-                        AxisLabel = new(){ Formatter = new JFunc() { RAW = _rawJSFormatters.AxisLabel } },
+                        AxisLabel = new(){ Formatter = new JFunc() { RAW = _rawJSFormatters.YAxisLabel } },
                         Type = AxisType.Value,
                         BoundaryGap = true,
                         Inverse = true
@@ -179,6 +177,22 @@
     }
 
     /// <summary>
+    /// Updates chart dataZoom start and end values
+    /// </summary>
+    [JSInvokable]
+    public void HandleDataZoom(double start, double end)
+    {
+        _dataZoomInfo = (start, end);
+        UpdateDataZoom();
+    }
+
+    /// <summary>
+    /// Loads and formats raw JavaScript file
+    /// </summary>
+    private async Task<string> LoadRawJSFileAsync(string fileName) =>
+           (await File.ReadAllTextAsync(Path.Combine(Environment.WebRootPath, "JavaScript", fileName))).Replace("\"use strict\";", "");
+
+    /// <summary>
     /// Updates client local time and time zone
     /// </summary>
     private async Task UpdateClientTimeInfo()
@@ -211,16 +225,6 @@
     }
 
     /// <summary>
-    /// Updates chart dataZoom start and end values
-    /// </summary>
-    [JSInvokable]
-    public void HandleDataZoom(double start, double end)
-    {
-        _dataZoomInfo = ((int)start, (int)end);
-        UpdateDataZoom();
-    }
-
-    /// <summary>
     /// Updates chart options with dataZoom values
     /// </summary>
     private void UpdateDataZoom()
@@ -236,7 +240,7 @@
     }
 
     /// <summary>
-    /// Disposes chart helper
+    /// Disposes chart reference
     /// </summary>
     public void Dispose() =>
         _itemChartRef?.Dispose();
