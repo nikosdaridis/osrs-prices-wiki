@@ -397,9 +397,11 @@ FodyWeavers.xsd
 # JetBrains Rider
 *.sln.iml
 
-
 # Compiled JavaScript and Tailwind
 Server/wwwroot/**/*.js
 tailwind-app.css
 !echarts.min.js
 !uglify.js
+
+# Sitemap
+sitemap.txt

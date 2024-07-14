@@ -9,7 +9,7 @@
     <h1 class="text-2xl 2sm:text-3xl">Real-Time OSRS GE Prices</h1>
 </div>
 
-<RadzenDataGrid @ref=_grid Count=@_items.Count() Data=@_items PageSize=25 PagerAlwaysVisible=true AllowColumnReorder=true AllowFiltering=true
+<RadzenDataGrid @ref=_grid Count=@_items.Count() Data=@_items.Values PageSize=25 PagerAlwaysVisible=true AllowColumnReorder=true AllowFiltering=true
                 FilterPopupRenderMode=PopupRenderMode.OnDemand AllowColumnResize=true FilterMode=Radzen.FilterMode.Advanced AllowPaging=true AllowSorting=true
                 ColumnWidth="100px" LogicalFilterOperator=LogicalFilterOperator.And PagerPosition=PagerPosition.TopAndBottom
                 PagerHorizontalAlign=HorizontalAlign.Center FilterCaseSensitivity=FilterCaseSensitivity.CaseInsensitive AllowColumnPicking=true
@@ -148,7 +148,7 @@
 @code {
     private RadzenDataGrid<ItemModel> _grid = new();
     private readonly IEnumerable<int> _pageSizeOptions = new int[] { 10, 15, 25, 50, 100 };
-    private IEnumerable<ItemModel> _items = [];
+    private ConcurrentDictionary<int, ItemModel> _items = [];
 
     private Filter<long?> _volumeFilter = new() { Value = 500 };
     private TimeFilter<long?> _instaBuyTimeFilter = new() { Value = (long)TimeUnit.Hours };

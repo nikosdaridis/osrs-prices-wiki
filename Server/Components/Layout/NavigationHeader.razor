@@ -7,7 +7,7 @@
         <RadzenButton Icon="home" ButtonStyle=ButtonStyle.Light MouseEnter=@(elem => TooltipService.Open(elem, "Home", _tooltipOptionsBottom)) />
     </NavLink>
 
-    <RadzenAutoComplete ValueChanged=@OnAutoCompleteValueChanged Data=@_items TextProperty=Name
+    <RadzenAutoComplete ValueChanged=@OnAutoCompleteValueChanged Data=@_items.Values TextProperty=Name
                         MinLength=2 class="w-[10rem] 2sm:w-[15rem] sm:w-[20rem] md:w-[25rem]" Placeholder="Search for item"
                         FilterOperator=StringFilterOperator.Contains FilterCaseSensitivity=FilterCaseSensitivity.CaseInsensitive>
         <Template>
@@ -23,7 +23,7 @@
 
 @code {
     private TooltipOptions _tooltipOptionsBottom = new() { Position = TooltipPosition.Bottom };
-    private List<ItemModel>? _items;
+    private ConcurrentDictionary<int, ItemModel> _items = [];
 
     /// <summary>
     /// Gets cached items

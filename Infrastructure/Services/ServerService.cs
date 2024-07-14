@@ -3,6 +3,7 @@ using Application.Models.Settings;
 using Common;
 using Common.Utilities;
 using Microsoft.Extensions.Options;
+using System.Collections.Concurrent;
 using System.Text;
 
 namespace Infrastructure.Services
@@ -12,25 +13,36 @@ namespace Infrastructure.Services
         public event Action? OnDataUpdated;
         public DateTime? LastUpdate;
 
+        private readonly SemaphoreSlim _semaphore = new(1, 1);
         private MappingModel[]? _mappingResponse;
         private Dictionary<string, string>? _volumeResponse;
         private LatestModel? _latestResponse;
-        private List<ItemModel> _items = [];
+        private ConcurrentDictionary<int, ItemModel> _items = [];
+        private ConcurrentDictionary<string, int> _itemsNameMap = [];
 
         /// <summary>
         /// Gets and combines data for latest items
         /// </summary>
-        public async Task<List<ItemModel>> GetLatestItemsAsync()
+        public async Task<ConcurrentDictionary<int, ItemModel>> GetLatestItemsAsync()
         {
-            if (_mappingResponse is null or [])
-                await GetMappingAsync();
+            await _semaphore.WaitAsync();
 
-            if (_volumeResponse is null)
-                await GetVolumeAsync();
+            try
+            {
+                if (_mappingResponse is null or [])
+                    await GetMappingAsync();
 
-            await GetLatestAsync();
-            CombineItemsData();
-            OnDataUpdated?.Invoke();
+                if (_volumeResponse is null)
+                    await GetVolumeAsync();
+
+                await GetLatestAsync();
+                CombineItemsData();
+                OnDataUpdated?.Invoke();
+            }
+            finally
+            {
+                _semaphore.Release();
+            }
 
             return _items;
         }
@@ -38,19 +50,20 @@ namespace Infrastructure.Services
         /// <summary>
         /// Gets cached items
         /// </summary>
-        public List<ItemModel> GetCachedItems() => _items;
+        public ConcurrentDictionary<int, ItemModel> GetCachedItems() =>
+            _items;
 
         /// <summary>
         /// Gets item by Id from cached items
         /// </summary>
         public ItemModel? GetCachedItem(int id) =>
-            _items.FirstOrDefault(item => item.Id == id);
+           _items.TryGetValue(id, out ItemModel? item) ? item : null;
 
         /// <summary>
         /// Gets item by Name from cached items
         /// </summary>
         public ItemModel? GetCachedItem(string name) =>
-            _items.FirstOrDefault(item => string.Equals(item.Name, name, StringComparison.OrdinalIgnoreCase));
+            _items.TryGetValue(_itemsNameMap.GetValueOrDefault(name), out ItemModel? item) ? item : null;
 
         /// <summary>
         /// Gets and caches items mapping data
@@ -101,8 +114,8 @@ namespace Infrastructure.Services
             sitemapContent.AppendLine("https://osrsprices.wiki");
             sitemapContent.AppendLine("https://osrsprices.wiki/contact");
 
-            foreach (ItemModel item in _items)
-                sitemapContent.AppendLine($"https://osrsprices.wiki/{StringUtility.BuildUri(item.Id.ToString(), item.Name, '-')}");
+            foreach (ItemModel item in _items.Values)
+                sitemapContent.AppendLine(StringUtility.BuildUri("https://osrsprices.wiki/", StringUtility.BuildUri(item.Id.ToString(), item.Name, '-')));
 
             string path = Path.Combine(Path.GetFullPath("wwwroot"), "sitemap.txt");
             await File.WriteAllTextAsync(path, sitemapContent.ToString());
@@ -133,6 +146,7 @@ namespace Infrastructure.Services
                 return false;
 
             _items = [];
+            _itemsNameMap = [];
 
             foreach (MappingModel mapping in _mappingResponse)
             {
@@ -162,13 +176,17 @@ namespace Infrastructure.Services
                     Accessibility = mapping.Members ? Accessibility.Members : Accessibility.FreeToPlay,
                 };
 
+                if (string.IsNullOrWhiteSpace(item.Name))
+                    continue;
+
                 item.Tax = item.InstaBuy >= 100 ? Math.Min((int)item.InstaBuy / 100, 5000000) : 0;
                 item.Margin = item.InstaBuy - item.InstaSell - item.Tax;
                 item.MarginXLimit = item.Margin * item.Limit;
                 item.MarginXVolume = item.Margin * volume;
                 item.RoiPercentage = Math.Round(item.InstaSell != 0 ? (float)item.Margin / item.InstaSell * 100 : 0, 2);
 
-                _items.Add(item);
+                _items[item.Id] = item;
+                _itemsNameMap[item.Name] = item.Id;
             }
 
             return true;
