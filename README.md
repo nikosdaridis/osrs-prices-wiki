@@ -13,7 +13,7 @@
 
 ## 🛠 Installation
 
-1. Node.js, npm and TypeScript has to be installed to build the project
+1. Node.js has to be installed to build the project
 
 2. Watch for TypeScript and Tailwind changes by opening a terminal and running
 
