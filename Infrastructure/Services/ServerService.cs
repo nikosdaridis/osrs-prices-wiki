@@ -155,6 +155,9 @@ namespace Infrastructure.Services
 
             foreach (MappingModel mapping in _mappingResponse)
             {
+                if (string.IsNullOrWhiteSpace(mapping.Name))
+                    continue;
+
                 _latestResponse.Data.TryGetValue(mapping.Id.ToString(), out LatestData? latest);
 
                 if (latest?.High is null || latest?.Low is null)
@@ -171,6 +174,8 @@ namespace Infrastructure.Services
                     Examine = mapping.Examine,
                     InstaBuy = latest?.High ?? int.MinValue,
                     InstaSell = latest?.Low ?? int.MinValue,
+                    HighTime = latest?.HighTime ?? 0,
+                    LowTime = latest?.LowTime ?? 0,
                     InstaBuyTime = (long)(DateTime.Now - DateTimeOffset.FromUnixTimeSeconds(latest?.HighTime ?? 0).LocalDateTime).TotalSeconds,
                     InstaSellTime = (long)(DateTime.Now - DateTimeOffset.FromUnixTimeSeconds(latest?.LowTime ?? 0).LocalDateTime).TotalSeconds,
                     Volume = volume,
@@ -181,9 +186,6 @@ namespace Infrastructure.Services
                     Accessibility = mapping.Members ? Accessibility.Members : Accessibility.FreeToPlay,
                 };
 
-                if (string.IsNullOrWhiteSpace(item.Name))
-                    continue;
-
                 item.Tax = item.InstaBuy >= 100 ? Math.Min((int)item.InstaBuy / 100, 5000000) : 0;
                 item.Margin = item.InstaBuy - item.InstaSell - item.Tax;
                 item.MarginXLimit = item.Margin * item.Limit;
@@ -191,7 +193,7 @@ namespace Infrastructure.Services
                 item.RoiPercentage = Math.Round(item.InstaSell != 0 ? (float)item.Margin / item.InstaSell * 100 : 0, 2);
 
                 _items[item.Id] = item;
-                _itemsNameMap[item.Name] = item.Id;
+                _itemsNameMap[item.Name!] = item.Id;
             }
 
             return true;

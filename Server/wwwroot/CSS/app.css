@@ -1,5 +1,5 @@
 @font-face {
-    font-family: 'Poppins';
+    font-family: Poppins;
     src: url('Poppins-Regular.ttf') format('woff2'), url('Poppins-Regular.ttf') format('woff'), url('Poppins-Regular.ttf') format('truetype');
     font-weight: normal;
     font-style: normal;
@@ -15,7 +15,7 @@
 }
 
 html, body {
-    font-family: 'Poppins', Arial, sans-serif;
+    font-family: Poppins, Arial, sans-serif;
 }
 
 a, .btn-link {

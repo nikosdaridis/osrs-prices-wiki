@@ -8,7 +8,7 @@
     </NavLink>
 
     <RadzenAutoComplete ValueChanged=@OnAutoCompleteValueChanged Data=@_items.Values TextProperty=Name
-                        MinLength=2 class="w-[10rem] 2sm:w-[15rem] sm:w-[20rem] md:w-[25rem]" Placeholder="Search for item"
+                        MinLength=2 class="w-[10rem] 2sm:w-[15rem] sm:w-[20rem] md:w-[25rem]" Placeholder="Search item"
                         FilterOperator=StringFilterOperator.Contains FilterCaseSensitivity=FilterCaseSensitivity.CaseInsensitive>
         <Template>
             <NavLink class="flex items-center space-x-4" href=@($"/{StringUtility.BuildUri(context.Id.ToString(), context.Name, '-' )}")>
@@ -18,7 +18,7 @@
         </Template>
     </RadzenAutoComplete>
 
-    <UpdateProgressCircle />
+    <ProgressCircle />
 </div>
 
 @code {

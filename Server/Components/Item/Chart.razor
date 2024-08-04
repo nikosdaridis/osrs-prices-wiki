@@ -12,9 +12,9 @@
     [Parameter]
     public string ActiveTimeSeriesInterval { get; set; } = "5m";
 
-    private DotNetObjectReference<ItemChart>? _itemChartRef;
+    private DotNetObjectReference<Chart>? _itemChartRef;
     private EChartsOption<OptionsLine.Line>? _chartOption;
-    private (DateTime Time, TimeZoneInfo TimeZone) _clientLocalTimeInfo = (DateTime.UtcNow, TimeZoneInfo.Utc);
+    private (DateTime? DateTime, TimeZoneInfo? TimeZone) _client;
     private (double Start, double End) _dataZoomInfo = (0, 100);
     private (string? Tooltip, string? YAxisLabel) _rawJSFormatters;
 
@@ -46,7 +46,7 @@
                         new { Name = "Insta Sell Price", Icon = "circle" },
                         new { Name = "Insta Buy Volume", Icon = "roundRect" },
                         new { Name = "Insta Sell Volume", Icon = "roundRect" }
-                    },
+                },
                     TextStyle = new() { Color = "#f6f7fa" },
                     InactiveColor = "#cccccc",
                     ItemGap = 30
@@ -64,12 +64,12 @@
                     Link = new() { XAxisIndex = "all" }
                 },
                 Grid = [
-                    new() {Left = "10%", Right = "10%", Top = "14%", Height = "40%"},
+                        new() {Left = "10%", Right = "10%", Top = "14%", Height = "40%"},
                     new() {Left = "10%", Right = "10%", Top = "65%", Height = "10%"},
                     new() {Left = "10%", Right = "10%", Top = "75%", Height = "10%"},
                 ],
                 XAxis = [
-                    new() {
+                        new() {
                         Type = AxisType.Category,
                         BoundaryGap = true
                     },
@@ -88,7 +88,7 @@
                         BoundaryGap = true,
                     }],
                 YAxis = [
-                    new(){
+                        new(){
                         Scale = true,
                         AxisLabel = new(){ Formatter = new JFunc() { RAW = _rawJSFormatters.YAxisLabel } },
                         Type = AxisType.Value,
@@ -113,7 +113,7 @@
                         Inverse = true
                     }],
                 DataZoom = [
-                    new DataZoomInside
+                        new DataZoomInside
                     {
                         XAxisIndex = new[] { 0, 1, 2 },
                         Start = _dataZoomInfo.Start,
@@ -129,7 +129,7 @@
                         TextStyle = new() { Color = "#f6f7fa" }
                     }],
                 Series = [
-                    new OptionsLine.Line() {
+                        new OptionsLine.Line() {
                         Name = "Insta Buy Price",
                         Type = "line",
                         ConnectNulls = true,
@@ -197,13 +197,13 @@
     /// </summary>
     private async Task UpdateClientTimeInfo()
     {
-        (DateTime? datetime, TimeZoneInfo? timezone) = await DateTimeUtility.GetClientLocalTime(JSRuntime);
+        (DateTime? datetime, TimeZoneInfo? timezone) = await DateTimeUtility.GetClientLocalTimeAsync(JSRuntime);
 
         if (datetime is not null)
-            _clientLocalTimeInfo.Time = datetime.Value;
+            _client.DateTime = datetime.Value;
 
         if (timezone is not null)
-            _clientLocalTimeInfo.TimeZone = timezone;
+            _client.TimeZone = timezone;
     }
 
     /// <summary>
@@ -216,7 +216,7 @@
 
         foreach (XAxis xAxis in _chartOption.XAxis)
             xAxis.Data = TimeSeries.Data.Select(timeSeries => NumericUtility.FormatSecondsToRelativeDateTime(
-                timeSeries.Timestamp, _clientLocalTimeInfo.Time, _clientLocalTimeInfo.TimeZone, ActiveTimeSeriesInterval));
+                timeSeries.Timestamp, _client, ActiveTimeSeriesInterval));
 
         (_chartOption.Series[0] as OptionsLine.Line)!.Data = TimeSeries.Data.Select(timeSeries => timeSeries.AvgHighPrice);
         (_chartOption.Series[1] as OptionsLine.Line)!.Data = TimeSeries.Data.Select(timeSeries => timeSeries.AvgLowPrice);

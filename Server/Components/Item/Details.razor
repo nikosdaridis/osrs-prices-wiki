@@ -1,0 +1,79 @@
+﻿@inject IOptions<OsrsWikiValues> OptionsOsrsWiki
+@inject IJSRuntime JSRuntime
+
+@if (Item is null)
+    return;
+
+<div class="ml-[5vw] mt-6 grid max-w-fit justify-center gap-6 2sm:ml-[10vw] 2sm:justify-start lg:mt-0">
+    <div class="flex items-center gap-2">
+        <RadzenImage class="flex-shrink-0" Path=@Item.Icon />
+        <h1 class="m-0 align-middle">@Item.Name</h1>
+    </div>
+
+    <div class="flex items-center gap-2">
+        <RadzenImage class="flex-shrink-0" Path=@StringUtility.BuildUri(OptionsOsrsWiki.Value.OldschoolWikiIconsBaseUri,
+                     $"{(Item.Accessibility == Accessibility.Members ? "Member_icon" : "Free-to-play_icon")}.png", '_') />
+        <h4 class="m-0 align-middle">@Item.Examine</h4>
+    </div>
+</div>
+
+<div class="flex justify-center">
+    <div class="mt-6 flex max-w-fit flex-col items-center justify-center rounded-xl border-[10px] border-[var(--primary-color)] bg-[var(--primary-color)] md:flex-row">
+        <div class="grid gap-4 sm:grid-cols-[auto,auto] sm:gap-10 md:grid-cols-[auto,auto,auto] md:gap-20">
+            <div class="col-span-1">
+                <DataDisplay Label="Insta Buy" LabelTooltip="Latest Buy price" Value=@Item.InstaBuy ValueTooltip=false ValueFormatter=@(value => ((long)value).ToString("N0")) />
+
+                <DataDisplay Label="Latest Buy" LabelTooltip="Time since last Buy" Value=@Item.InstaBuyTime ValueFormatter=@(value => $"{NumericUtility.FormatSeconds((long)value)} ago")
+                             ValueTooltipFormatter=@((_) => NumericUtility.FormatSecondsToRelativeDateTime((long)Item.HighTime, _client))
+                             Style=@($"color: {CSSHelper.GetColor(nameof(Item.InstaBuyTime), Item.InstaBuyTime)}") />
+
+                <DataDisplay Label="Insta Sell" LabelTooltip="Latest Sell price" Value=@Item.InstaSell ValueTooltip=false ValueFormatter=@(value => ((long)value).ToString("N0")) />
+
+                <DataDisplay Label="Latest Sell" LabelTooltip="Time since last Sell" Value=@Item.InstaSellTime ValueFormatter=@(value => $"{NumericUtility.FormatSeconds((long)value)} ago")
+                             ValueTooltipFormatter=@((_) => NumericUtility.FormatSecondsToRelativeDateTime((long)Item.LowTime, _client))
+                             Style=@($"color: {CSSHelper.GetColor(nameof(Item.InstaSellTime), Item.InstaSellTime)}") />
+            </div>
+
+            <div class="col-span-1">
+                <DataDisplay Label="Margin" LabelTooltip="Profit after tax" Value=@Item.Margin ValueFormatter=@(value => NumericUtility.FormatNumber((long)value))
+                             Style=@($"color: {CSSHelper.GetColor(nameof(Item.Margin), Item.Margin)}") />
+
+                <DataDisplay Label="ROI" LabelTooltip="Profit percentage" Value=@Item.RoiPercentage ValueTooltip=false
+                             ValueFormatter=@(value => (double)value == Math.Floor((double)value) ? $"{value:F0}%" : $"{value:F2}%")
+                             Style=@($"color: {CSSHelper.GetColor(nameof(Item.RoiPercentage), Item.RoiPercentage)}") />
+
+                <DataDisplay Label="MarginXLimit" LabelTooltip="Max profit per limit (4 hrs)" Value=@Item.MarginXLimit ValueFormatter=@(value => NumericUtility.FormatNumber((long)value))
+                             Style=@($"color: {CSSHelper.GetColor(nameof(Item.MarginXLimit), Item.MarginXLimit)}") />
+
+                <DataDisplay Label="MarginXVolume" LabelTooltip="Margin * Volume" Value=@Item.MarginXVolume ValueFormatter=@(value => NumericUtility.FormatNumber((long)value))
+                             Style=@($"color: {CSSHelper.GetColor(nameof(Item.MarginXVolume), Item.MarginXVolume)}") />
+            </div>
+
+            <div class="col-span-1">
+                <DataDisplay Label="Tax" LabelTooltip="Grand Exchange Tax" Value=@Item.Tax ValueFormatter=@(value => NumericUtility.FormatNumber((int)value)) />
+
+                <DataDisplay Label="High Alch" LabelTooltip="High alchemy value" Value=@Item.HighAlch ValueFormatter=@(value => NumericUtility.FormatNumber((int)value)) />
+
+                <DataDisplay Label="Limit" LabelTooltip="Max Buy amount every 4 hours" Value=@Item.Limit ValueFormatter=@(value => NumericUtility.FormatNumber((int)value)) />
+
+                <DataDisplay Label="Volume" LabelTooltip="Traded amount last 24 hours" Value=@Item.Volume ValueFormatter=@(value => NumericUtility.FormatNumber((long)value))
+                             Style=@($"color: {CSSHelper.GetColor(nameof(Item.Volume), Item.Volume)}") />
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public ItemModel? Item { get; set; }
+
+    private (DateTime? DateTime, TimeZoneInfo? TimeZone) _client;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+
+        if (firstRender)
+            _client = await DateTimeUtility.GetClientLocalTimeAsync(JSRuntime);
+    }
+}

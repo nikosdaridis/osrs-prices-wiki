@@ -10,6 +10,8 @@ namespace Application.Models.API
         public string? Examine { get; set; }
         public long InstaBuy { get; set; }
         public long InstaSell { get; set; }
+        public long HighTime { get; set; }
+        public long LowTime { get; set; }
         public long Margin { get; set; }
         public double RoiPercentage { get; set; }
         public long MarginXLimit { get; set; }

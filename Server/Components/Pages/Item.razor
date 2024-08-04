@@ -8,14 +8,14 @@
 
 <PageTitle>@_item?.Name - OSRS GE Price & Flipping Tracker - Live RuneScape Grand Exchange Prices</PageTitle>
 
-<ItemDetails Item=_item />
+<Details Item=_item />
 
 <RadzenDropDown TValue=string Value=@_activeTimeSeriesInterval Data=@_timeSeries.Keys Change=@((args) => OnTimeSeriesPeriodChanged(args.ToString()))
                 class="z-50 float-right mr-[10px] mt-[1rem] w-[6rem] md:mr-[2vw] md:mt-[3rem] lg:mr-[10vw]" />
 
 @if (_item is not null && _activeTimeSeries is not null)
 {
-    <ItemChart TimeSeries=_activeTimeSeries ActiveTimeSeriesInterval=@_activeTimeSeriesInterval />
+    <Server.Components.Item.Chart TimeSeries=_activeTimeSeries ActiveTimeSeriesInterval=@_activeTimeSeriesInterval />
 }
 
 @code {
