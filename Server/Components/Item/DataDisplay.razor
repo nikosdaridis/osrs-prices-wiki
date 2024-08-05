@@ -48,7 +48,7 @@
         string? tooltipValue;
 
         if (ValueTooltipFormatter is null && Value is IConvertible convertibleValue && Math.Abs(Convert.ToInt32(Value)) >= 1_000)
-            tooltipValue = Convert.ToDouble(convertibleValue).ToString("N0");
+            tooltipValue = Convert.ToInt32(convertibleValue).ToString("N0");
         else
             tooltipValue = ValueTooltipFormatter?.Invoke(Value ?? string.Empty) ?? string.Empty;
 

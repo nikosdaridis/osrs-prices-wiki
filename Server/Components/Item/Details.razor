@@ -1,5 +1,4 @@
 ﻿@inject IOptions<OsrsWikiValues> OptionsOsrsWiki
-@inject IJSRuntime JSRuntime
 
 @if (Item is null)
     return;
@@ -67,13 +66,16 @@
     [Parameter]
     public ItemModel? Item { get; set; }
 
+    [Parameter]
+    public IJSRuntime? JSRuntime { get; set; }
+
     private (DateTime? DateTime, TimeZoneInfo? TimeZone) _client;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         await base.OnAfterRenderAsync(firstRender);
 
-        if (firstRender)
+        if (firstRender && JSRuntime is not null)
             _client = await DateTimeUtility.GetClientLocalTimeAsync(JSRuntime);
     }
 }

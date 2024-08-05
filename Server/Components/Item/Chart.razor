@@ -1,7 +1,6 @@
 ﻿@implements IDisposable
 
 @inject IWebHostEnvironment Environment
-@inject IJSRuntime JSRuntime
 
 <ELine Option=_chartOption class="mt-[4rem] h-[500px] md:mt-[2rem]" />
 
@@ -11,6 +10,9 @@
 
     [Parameter]
     public string ActiveTimeSeriesInterval { get; set; } = "5m";
+
+    [Parameter]
+    public IJSRuntime? JSRuntime { get; set; }
 
     private DotNetObjectReference<Chart>? _itemChartRef;
     private EChartsOption<OptionsLine.Line>? _chartOption;
@@ -29,7 +31,9 @@
             return;
 
         _itemChartRef = DotNetObjectReference.Create(this);
-        await JSRuntime.InvokeVoidAsync("eChartsInterop.initializeDataZoomHandler", _itemChartRef);
+
+        if (JSRuntime is not null)
+            await JSRuntime.InvokeVoidAsync("eChartsInterop.initializeDataZoomHandler", _itemChartRef);
 
         _rawJSFormatters.Tooltip = await LoadRawJSFileAsync("eChartsTooltipFormatter.js");
         _rawJSFormatters.YAxisLabel = await LoadRawJSFileAsync("eChartsYAxisLabelFormatter.js");
@@ -46,7 +50,7 @@
                         new { Name = "Insta Sell Price", Icon = "circle" },
                         new { Name = "Insta Buy Volume", Icon = "roundRect" },
                         new { Name = "Insta Sell Volume", Icon = "roundRect" }
-                },
+                    },
                     TextStyle = new() { Color = "#f6f7fa" },
                     InactiveColor = "#cccccc",
                     ItemGap = 30
@@ -64,12 +68,12 @@
                     Link = new() { XAxisIndex = "all" }
                 },
                 Grid = [
-                        new() {Left = "10%", Right = "10%", Top = "14%", Height = "40%"},
+                    new() {Left = "10%", Right = "10%", Top = "14%", Height = "40%"},
                     new() {Left = "10%", Right = "10%", Top = "65%", Height = "10%"},
                     new() {Left = "10%", Right = "10%", Top = "75%", Height = "10%"},
                 ],
                 XAxis = [
-                        new() {
+                    new() {
                         Type = AxisType.Category,
                         BoundaryGap = true
                     },
@@ -88,7 +92,7 @@
                         BoundaryGap = true,
                     }],
                 YAxis = [
-                        new(){
+                    new(){
                         Scale = true,
                         AxisLabel = new(){ Formatter = new JFunc() { RAW = _rawJSFormatters.YAxisLabel } },
                         Type = AxisType.Value,
@@ -113,7 +117,7 @@
                         Inverse = true
                     }],
                 DataZoom = [
-                        new DataZoomInside
+                    new DataZoomInside
                     {
                         XAxisIndex = new[] { 0, 1, 2 },
                         Start = _dataZoomInfo.Start,
@@ -129,7 +133,7 @@
                         TextStyle = new() { Color = "#f6f7fa" }
                     }],
                 Series = [
-                        new OptionsLine.Line() {
+                    new OptionsLine.Line() {
                         Name = "Insta Buy Price",
                         Type = "line",
                         ConnectNulls = true,
@@ -197,6 +201,9 @@
     /// </summary>
     private async Task UpdateClientTimeInfo()
     {
+        if (JSRuntime is null)
+            return;
+
         (DateTime? datetime, TimeZoneInfo? timezone) = await DateTimeUtility.GetClientLocalTimeAsync(JSRuntime);
 
         if (datetime is not null)

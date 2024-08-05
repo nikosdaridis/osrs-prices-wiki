@@ -2,6 +2,7 @@
 
 @inject IOptions<OsrsWikiValues> OptionsOsrsWiki
 @inject ServerService ServerService
+@inject TooltipService TooltipService
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JSRuntime
 
@@ -19,14 +20,16 @@
                               FilterOperator=FilterOperator.Equals SecondFilterOperator=FilterOperator.GreaterThan>
             <Template Context=item>
                 <a class="link" href=@($"/{StringUtility.BuildUri(item.Id.ToString(), item.Name, '-' )}")>
-                    <RadzenText Text=@item.Id.ToString() />
+                    <RadzenText Text=@item.Id.ToString()
+                                MouseEnter=@((e) => HandleValueMouseEnter(e, item?.Name, null)) />
                 </a>
             </Template>
         </CustomDataGridColumn>
         <RadzenDataGridColumn Property=Icon Title=Icon Filterable=false Sortable=false Width="30px" MinWidth="40px">
             <Template Context=item>
                 <a class="link" href=@($"/{StringUtility.BuildUri(item.Id.ToString(), item.Name, '-' )}")>
-                    <RadzenImage Path=@item.Icon />
+                    <RadzenImage Path=@item.Icon
+                                 MouseEnter=@((e) => HandleValueMouseEnter(e, item?.Name, null)) />
                 </a>
             </Template>
         </RadzenDataGridColumn>
@@ -54,7 +57,9 @@
                               SortOrder=SortOrder.Descending
                               FilterOperator=FilterOperator.GreaterThanOrEquals SecondFilterOperator=FilterOperator.LessThanOrEquals>
             <Template Context=item>
-                <RadzenText Style=@($"color: {CSSHelper.GetColor(nameof(item.Margin), item.Margin)}") Text="@NumericUtility.FormatNumber(item.Margin)" />
+                <RadzenText Style=@($"color: {CSSHelper.GetColor(nameof(item.Margin), item.Margin)}")
+                            Text="@NumericUtility.FormatNumber(item.Margin)"
+                            MouseEnter=@((e) => HandleValueMouseEnter(e, item?.Margin, value => ((long)value).ToString("N0"))) />
             </Template>
         </CustomDataGridColumn>
         <CustomDataGridColumn Property=RoiPercentage Title=Roi Width="50px" MinWidth="50px"
@@ -68,14 +73,16 @@
                               FilterOperator=FilterOperator.GreaterThanOrEquals SecondFilterOperator=FilterOperator.LessThanOrEquals>
             <Template Context=item>
                 <RadzenText Style=@($"color: {CSSHelper.GetColor(nameof(item.Volume), item.Volume)}")
-                            Text=@NumericUtility.FormatNumber(item.Volume) />
+                            Text=@NumericUtility.FormatNumber(item.Volume)
+                            MouseEnter=@((e) => HandleValueMouseEnter(e, item?.Volume, value => ((long)value).ToString("N0"))) />
             </Template>
         </CustomDataGridColumn>
         <RadzenDataGridColumn Property=InstaBuyTime Title="Latest Insta Buy" Width="70px" MinWidth="70px" FilterValue=_instaBuyTimeFilter.Value
                               FilterOperator=@(_instaBuyTimeFilter.Direction == TimeDirection.Before ? FilterOperator.LessThan : FilterOperator.GreaterThan)>
             <Template Context=item>
                 <RadzenText Style=@($"color: {CSSHelper.GetColor(nameof(item.InstaBuyTime), item.InstaBuyTime)}")
-                            Text=@($"{NumericUtility.FormatSeconds(item.InstaBuyTime)} ago") />
+                            Text=@($"{NumericUtility.FormatSeconds(item.InstaBuyTime)} ago")
+                            MouseEnter=@((e) => HandleValueMouseEnter(e, item?.HighTime, value => NumericUtility.FormatSecondsToRelativeDateTime((long)value, _client), false)) />
             </Template>
             <FilterTemplate>
                 <TimeFilterTemplate @bind-Filter=_instaBuyTimeFilter Grid=_grid />
@@ -85,7 +92,8 @@
                               FilterOperator=@(_instaSellTimeFilter.Direction == TimeDirection.Before ? FilterOperator.LessThan : FilterOperator.GreaterThan)>
             <Template Context=item>
                 <RadzenText Style=@($"color: {CSSHelper.GetColor(nameof(item.InstaSellTime), item.InstaSellTime)}")
-                            Text=@($"{NumericUtility.FormatSeconds(item.InstaSellTime)} ago") />
+                            Text=@($"{NumericUtility.FormatSeconds(item.InstaSellTime)} ago")
+                            MouseEnter=@((e) => HandleValueMouseEnter(e, item?.LowTime, value => NumericUtility.FormatSecondsToRelativeDateTime((long)value, _client), false)) />
             </Template>
             <FilterTemplate>
                 <TimeFilterTemplate @bind-Filter=_instaSellTimeFilter Grid=_grid />
@@ -94,52 +102,60 @@
         <CustomDataGridColumn Property=Limit Title=Limit Width="50px" MinWidth="50px" Visible=false
                               FilterOperator=FilterOperator.GreaterThanOrEquals SecondFilterOperator=FilterOperator.LessThanOrEquals>
             <Template Context=item>
-                <RadzenText Text=@NumericUtility.FormatNumber(item.Limit, "0") />
+                <RadzenText Text=@NumericUtility.FormatNumber(item.Limit, "0")
+                            MouseEnter=@((e) => HandleValueMouseEnter(e, item?.Limit, value => ((int)value).ToString("N0"))) />
             </Template>
         </CustomDataGridColumn>
         <CustomDataGridColumn Property=MarginXLimit Title="Margin x Limit" Width="60px" MinWidth="60px"
                               FilterOperator=FilterOperator.GreaterThanOrEquals SecondFilterOperator=FilterOperator.LessThanOrEquals>
             <Template Context=item>
                 <RadzenText Style=@($"color: {CSSHelper.GetColor(nameof(item.MarginXLimit), item.MarginXLimit)}")
-                            Text=@NumericUtility.FormatNumber(item.MarginXLimit) />
+                            Text=@NumericUtility.FormatNumber(item.MarginXLimit)
+                            MouseEnter=@((e) => HandleValueMouseEnter(e, item?.MarginXLimit, value => ((long)value).ToString("N0"))) />
             </Template>
         </CustomDataGridColumn>
         <CustomDataGridColumn Property=MarginXVolume Title="Margin x Volume" Width="60px" MinWidth="60px"
                               FilterOperator=FilterOperator.GreaterThanOrEquals SecondFilterOperator=FilterOperator.LessThanOrEquals>
             <Template Context=item>
                 <RadzenText Style=@($"color: {CSSHelper.GetColor(nameof(item.MarginXVolume), item.MarginXVolume)}")
-                            Text=@NumericUtility.FormatNumber(item.MarginXVolume) />
+                            Text=@NumericUtility.FormatNumber(item.MarginXVolume)
+                            MouseEnter=@((e) => HandleValueMouseEnter(e, item?.MarginXVolume, value => ((long)value).ToString("N0"))) />
             </Template>
         </CustomDataGridColumn>
         <CustomDataGridColumn Property=Value Title=Value Width="50px" MinWidth="40px" Visible=false
                               FilterOperator=FilterOperator.GreaterThanOrEquals SecondFilterOperator=FilterOperator.LessThanOrEquals>
             <Template Context=item>
-                <RadzenText Text=@NumericUtility.FormatNumber(item.Value, "0") />
+                <RadzenText Text=@NumericUtility.FormatNumber(item.Value, "0")
+                            MouseEnter=@((e) => HandleValueMouseEnter(e, item?.Value, value => ((int)value).ToString("N0"))) />
             </Template>
         </CustomDataGridColumn>
         <CustomDataGridColumn Property=HighAlch Title=HighAlch Width="60px" MinWidth="50px" Visible=false
                               FilterOperator=FilterOperator.GreaterThanOrEquals SecondFilterOperator=FilterOperator.LessThanOrEquals>
             <Template Context=item>
-                <RadzenText Text=@NumericUtility.FormatNumber(item.HighAlch, "0") />
+                <RadzenText Text=@NumericUtility.FormatNumber(item.HighAlch, "0")
+                            MouseEnter=@((e) => HandleValueMouseEnter(e, item?.HighAlch, value => ((int)value).ToString("N0"))) />
             </Template>
         </CustomDataGridColumn>
         <CustomDataGridColumn Property=LowAlch Title=LowAlch Width="60px" MinWidth="50px" Visible=false
                               FilterOperator=FilterOperator.GreaterThanOrEquals SecondFilterOperator=FilterOperator.LessThanOrEquals>
             <Template Context=item>
-                <RadzenText Text=@NumericUtility.FormatNumber(item.LowAlch, "0") />
+                <RadzenText Text=@NumericUtility.FormatNumber(item.LowAlch, "0")
+                            MouseEnter=@((e) => HandleValueMouseEnter(e, item?.LowAlch, value => ((int)value).ToString("N0"))) />
             </Template>
         </CustomDataGridColumn>
         <RadzenDataGridColumn Property=Accessibility Title=Members Width="40px" MinWidth="40px" Visible=false
                               LogicalFilterOperator=LogicalFilterOperator.Or>
             <Template Context=item>
                 <RadzenImage Path=@StringUtility.BuildUri(OptionsOsrsWiki.Value.OldschoolWikiIconsBaseUri,
-                             $"{(item.Accessibility == Accessibility.Members ? "Member_icon" : "Free-to-play_icon")}.png", '_') />
+                             $"{(item.Accessibility == Accessibility.Members ? "Member_icon" : "Free-to-play_icon")}.png", '_')
+                             MouseEnter=@((e) => HandleValueMouseEnter(e, item?.Accessibility, value => Regex.Replace(value?.ToString() ?? string.Empty, "(\\B[A-Z])", " $1"))) />
             </Template>
         </RadzenDataGridColumn>
         <CustomDataGridColumn Property=Tax Title=Tax Width="50px" MinWidth="50px" Visible=false
                               FilterOperator=FilterOperator.GreaterThanOrEquals SecondFilterOperator=FilterOperator.LessThanOrEquals>
             <Template Context=item>
-                <RadzenText Text=@NumericUtility.FormatNumber(item.Tax) />
+                <RadzenText Text=@NumericUtility.FormatNumber(item.Tax)
+                            MouseEnter=@((e) => HandleValueMouseEnter(e, item?.Tax, value => ((int)value).ToString("N0"))) />
             </Template>
         </CustomDataGridColumn>
     </Columns>
@@ -150,9 +166,11 @@
     private readonly IEnumerable<int> _pageSizeOptions = new int[] { 10, 15, 25, 50, 100 };
     private ConcurrentDictionary<int, ItemModel> _items = [];
 
+    private (DateTime? DateTime, TimeZoneInfo? TimeZone) _client;
     private Filter<long?> _volumeFilter = new() { Value = 500 };
     private TimeFilter<long?> _instaBuyTimeFilter = new() { Value = (long)TimeUnit.Hours };
     private TimeFilter<long?> _instaSellTimeFilter = new() { Value = (long)TimeUnit.Hours };
+    private TooltipOptions _tooltipOptions = new() { Position = TooltipPosition.Top, Duration = 10000 };
 
     /// <summary>
     /// Gets cached items and subscribes to data updated event
@@ -173,7 +191,10 @@
         await base.OnAfterRenderAsync(firstRender);
 
         if (firstRender)
+        {
             await JSRuntime.InvokeVoidAsync("moveElement", "h1-title", ".rz-group-header", "first");
+            _client = await DateTimeUtility.GetClientLocalTimeAsync(JSRuntime);
+        }
     }
 
     /// <summary>
@@ -192,6 +213,30 @@
     {
         if (args.Column.Property.Equals(nameof(ItemModel.Volume)))
             _volumeFilter.Value = null;
+    }
+
+    /// <summary>
+    /// Handles mouse enter event on cell
+    /// </summary>
+    private void HandleValueMouseEnter(ElementReference element, object? value, Func<object, string>? valueFormatter, bool directValue = true)
+    {
+        string? tooltipValue = null;
+
+        if (value is IConvertible convertibleValue)
+        {
+            if (int.TryParse(convertibleValue.ToString(), out int intValue))
+            {
+                if (directValue && Math.Abs(intValue) < 1_000)
+                    return;
+
+                tooltipValue = Convert.ToInt32(convertibleValue).ToString("N0");
+            }
+        }
+
+        tooltipValue = valueFormatter?.Invoke(value ?? string.Empty) ?? tooltipValue ?? (string?)value ?? string.Empty;
+
+        if (!string.IsNullOrWhiteSpace(tooltipValue))
+            TooltipService.Open(element, tooltipValue, _tooltipOptions);
     }
 
     /// <summary>
