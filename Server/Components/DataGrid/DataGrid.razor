@@ -170,7 +170,7 @@
     private Filter<long?> _volumeFilter = new() { Value = 500 };
     private TimeFilter<long?> _instaBuyTimeFilter = new() { Value = (long)TimeUnit.Hours };
     private TimeFilter<long?> _instaSellTimeFilter = new() { Value = (long)TimeUnit.Hours };
-    private TooltipOptions _tooltipOptions = new() { Position = TooltipPosition.Top, Duration = 10000 };
+    private TooltipOptions _tooltipOptions = new() { Position = TooltipPosition.Bottom, Duration = 10000 };
 
     /// <summary>
     /// Gets cached items and subscribes to data updated event

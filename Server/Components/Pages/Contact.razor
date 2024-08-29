@@ -29,15 +29,12 @@
 </div>
 
 @code {
-    private SMTPValues _smtpValues = new();
     private EmailModel _email = new();
     private string? _messageResult;
 
     protected override void OnInitialized()
     {
         base.OnInitialized();
-
-        _smtpValues = SMTPValues.Value;
     }
 
     /// <summary>
@@ -45,7 +42,7 @@
     /// </summary>
     private async void HandleSubmitAsync()
     {
-        if (await EmailSenderService.SendEmailAsync(_smtpValues, _email))
+        if (await EmailSenderService.SendEmailAsync(SMTPValues.Value, _email))
             _messageResult = "Message sent successfully";
         else
             _messageResult = "Message failed to send, try again later";

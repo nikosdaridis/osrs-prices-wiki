@@ -5,6 +5,7 @@ using Common.Utilities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Collections.Concurrent;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace Infrastructure.Services
@@ -108,7 +109,7 @@ namespace Infrastructure.Services
                 optionsOsrsWiki.Value.OSRSPricesWikiBaseUri, optionsOsrsWiki.Value.Timeseries, timestep, id.ToString()));
 
         /// <summary>
-        /// Generates sitemap.txt in wwwroot
+        /// Generates sitemap.txt file with all pages
         /// </summary>
         public async Task GenerateSitemapAsync()
         {
@@ -122,8 +123,14 @@ namespace Infrastructure.Services
             foreach (ItemModel item in _items.Values)
                 sitemapContent.AppendLine(StringUtility.BuildUri("https://osrsprices.wiki/", StringUtility.BuildUri(item.Id.ToString(), item.Name, '-')));
 
-            string path = Path.Combine(Path.GetFullPath("wwwroot"), "sitemap.txt");
-            await File.WriteAllTextAsync(path, sitemapContent.ToString());
+            string basePath = StringUtility.GetOSPlatform() switch
+            {
+                nameof(OSPlatform.Linux) => "/var/www/osrspriceswiki/wwwroot",
+                nameof(OSPlatform.Windows) => Path.GetFullPath("wwwroot"),
+                _ => throw new PlatformNotSupportedException()
+            };
+
+            await File.WriteAllTextAsync(Path.Combine(basePath, "sitemap.txt"), sitemapContent.ToString());
         }
 
         /// <summary>

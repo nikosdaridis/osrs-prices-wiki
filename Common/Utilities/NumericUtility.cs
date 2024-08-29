@@ -19,6 +19,7 @@ namespace Common.Utilities
                 _ when seconds >= (int)TimeUnit.Minutes => (seconds / (int)TimeUnit.Minutes, TimeUnit.Minutes),
                 _ => (seconds, TimeUnit.Seconds)
             };
+
             return $"{formattedValue} {suffix.ToString()[..^1].ToLower()}{(formattedValue == 1 ? "" : "s")}";
         }
 

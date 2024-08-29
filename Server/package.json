@@ -14,7 +14,7 @@
     "cross-env": "^7.0.3",
     "glob": "^11.0.0",
     "concurrently": "^8.2.2",
-    "uglify-js": "^3.19.2"
+    "uglify-js": "^3.19.3"
   },
   "include": [
     "./wwwroot/TypeScript/**/*.ts"

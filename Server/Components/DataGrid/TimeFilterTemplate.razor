@@ -3,19 +3,19 @@
 @if (Filter is null)
     return;
 
-<div class="m-[10px] grid w-[200px] gap-2">
-    <RadzenText Style="font-size: 14px;font-weight: 600; margin-top: 5px;" Text="Filter" />
+<div class="m-[10px] max-w-[230px] grid gap-2">
+    <RadzenText Style="font-size: 15px;font-weight: 600; margin-top: 5px;" Text="Filter" />
     <RadzenDropDown @bind-Value=Filter.Direction
                     Data=@(Enum.GetValues(typeof(TimeDirection)).Cast<TimeDirection>().Select(timeDirection => timeDirection)) />
 
-    <div class="flex justify-around gap-6">
+    <div class="flex justify-around gap-[10%]">
         <RadzenNumeric Min=1 @bind-Value=Filter.Number ShowUpDown=true />
         <RadzenDropDown @bind-Value=Filter.Unit
                         Data=@(Enum.GetValues(typeof(TimeUnit)).Cast<TimeUnit>().Select(timeUnit => timeUnit)) />
     </div>
 
-    <div class="mt-[14px] flex justify-around gap-[85px]">
-        <RadzenButton Style="background-color: #3b9fd5;" Text=Clear Click=ClearFilterAsync />
+    <div class="mt-[14px] flex justify-around gap-[30%]">
+        <RadzenButton Style="background-color: #63737a;" Text=Clear Click=ClearFilterAsync />
         <RadzenButton Text=Apply Click=UpdateFilterAsync />
     </div>
 </div>

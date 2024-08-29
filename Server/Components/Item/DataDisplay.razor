@@ -1,11 +1,12 @@
-﻿@inject TooltipService tooltipService
-
-<div class="grid grid-cols-2 gap-4">
+﻿<div class="grid grid-cols-2 gap-4">
     <h4 @ref=_labelElement @onmouseenter=HandleLabelMouseEnter>@Label</h4>
     <h4 @ref=_valueElement @onmouseenter=HandleValueMouseEnter style=@Style>@(ValueFormatter?.Invoke(Value ?? string.Empty) ?? Value?.ToString() ?? string.Empty)</h4>
 </div>
 
 @code {
+    [Parameter]
+    public TooltipService? TooltipService { get; set; }
+
     [Parameter]
     public string? Label { get; set; }
 
@@ -29,13 +30,13 @@
 
     private ElementReference _labelElement, _valueElement;
 
-    private TooltipOptions _tooltipOptions = new() { Position = TooltipPosition.Top, Duration = 10000 };
+    private TooltipOptions _tooltipOptions = new() { Position = TooltipPosition.Bottom, Duration = 10000 };
 
     /// <summary>
     /// Handles mouse enter event on label
     /// </summary>
     private void HandleLabelMouseEnter() =>
-            tooltipService.Open(_labelElement, LabelTooltip, _tooltipOptions);
+            TooltipService?.Open(_labelElement, LabelTooltip, _tooltipOptions);
 
     /// <summary>
     /// Handles mouse enter event on value
@@ -47,12 +48,12 @@
 
         string? tooltipValue;
 
-        if (ValueTooltipFormatter is null && Value is IConvertible convertibleValue && Math.Abs(Convert.ToInt32(Value)) >= 1_000)
-            tooltipValue = Convert.ToInt32(convertibleValue).ToString("N0");
+        if (ValueTooltipFormatter is null && Value is IConvertible convertibleValue && Math.Abs(Convert.ToInt64(Value)) >= 1_000)
+            tooltipValue = Convert.ToInt64(convertibleValue).ToString("N0");
         else
             tooltipValue = ValueTooltipFormatter?.Invoke(Value ?? string.Empty) ?? string.Empty;
 
         if (!string.IsNullOrWhiteSpace(tooltipValue))
-            tooltipService.Open(_valueElement, tooltipValue, _tooltipOptions);
+            TooltipService?.Open(_valueElement, tooltipValue, _tooltipOptions);
     }
 }

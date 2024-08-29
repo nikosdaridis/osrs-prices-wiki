@@ -25,7 +25,7 @@ const path = require('path');
                     console.error(`Uglify - Error output for file ${file}:`, stderror);
                 }
 
-                console.log(`Successfully uglified ${file}`);
+                console.log(`Uglify - Successfully uglified ${file}`);
             });
         });
     } catch (error) {

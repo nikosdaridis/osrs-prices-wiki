@@ -1,11 +1,11 @@
 ﻿using Application;
 using Application.Models.Settings;
+using Common.Utilities;
 using Infrastructure;
 using Radzen;
 using Serilog;
 using Serilog.Events;
 using System.Globalization;
-using System.Runtime.InteropServices;
 
 namespace Server
 {
@@ -51,7 +51,7 @@ namespace Server
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Is(minimumLevel)
                 .WriteTo.File(
-                    path: serilogValues.Paths.TryGetValue(GetCurrentOSPlatform(OSPlatform.Linux, OSPlatform.Windows), out string? path) ? path ?? throw new PlatformNotSupportedException() : throw new PlatformNotSupportedException(),
+                    path: serilogValues.Paths.TryGetValue(StringUtility.GetOSPlatform(), out string? path) ? path ?? throw new PlatformNotSupportedException() : throw new PlatformNotSupportedException(),
                     fileSizeLimitBytes: serilogValues.FileSizeLimitBytes,
                     rollingInterval: serilogValues.RollingInterval,
                     rollOnFileSizeLimit: serilogValues.RollOnFileSizeLimit,
@@ -61,10 +61,6 @@ namespace Server
                     formatProvider: new CultureInfo(serilogValues.FormatProviderCulture)
                 )
                 .CreateLogger();
-
-            // Gets current OS Platform
-            static string GetCurrentOSPlatform(params OSPlatform[] supportedPlatforms) =>
-                supportedPlatforms.FirstOrDefault(RuntimeInformation.IsOSPlatform).ToString();
         }
     }
 }

@@ -45,7 +45,8 @@ namespace Application.Services
         /// <summary>
         /// Handles the timer job
         /// </summary>
-        private void HandleTimer(object? sender, ElapsedEventArgs e) => OnJobExecuted();
+        private void HandleTimer(object? sender, ElapsedEventArgs e) =>
+            OnJobExecuted();
 
         /// <summary>
         /// Stops executing the job

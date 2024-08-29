@@ -15,16 +15,9 @@ namespace Common.Utilities
             if (timeInfo is null || timeInfo.TimeZone is null || timeInfo.LocalTime is null)
                 return (null, null);
 
-            try
-            {
-                DateTime clientLocalTime = DateTime.Parse(timeInfo.LocalTime, null, System.Globalization.DateTimeStyles.RoundtripKind);
-                TimeZoneInfo clientTimeZone = TimeZoneInfo.FindSystemTimeZoneById(timeInfo.TimeZone);
-                return (clientLocalTime, clientTimeZone);
-            }
-            catch
-            {
-                return (null, null);
-            }
+            DateTime clientLocalTime = DateTime.Parse(timeInfo.LocalTime, null, System.Globalization.DateTimeStyles.RoundtripKind);
+            TimeZoneInfo clientTimeZone = TimeZoneInfo.FindSystemTimeZoneById(timeInfo.TimeZone);
+            return (clientLocalTime, clientTimeZone);
         }
     }
 }

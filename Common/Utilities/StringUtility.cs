@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
 
 namespace Common.Utilities
 {
@@ -11,6 +12,8 @@ namespace Common.Utilities
         // Matches whitespace characters
         [GeneratedRegex(@"\s+", RegexOptions.Compiled)]
         private static partial Regex WhitespaceCharacterRegex();
+
+        private static readonly OSPlatform[] _supportedOSPlatform = [OSPlatform.Linux, OSPlatform.Windows];
 
         /// <summary>
         /// Builds URI from base URI and route path
@@ -39,5 +42,13 @@ namespace Common.Utilities
         /// </summary>
         public static string BuildUri(string? baseUri, string? routePath, char whitespaceReplacement, params string?[] routeParameters) =>
              WhitespaceCharacterRegex().Replace(BuildUri(baseUri, routePath, routeParameters), whitespaceReplacement.ToString());
+
+        /// <summary>
+        /// Gets current OS platform name in sentence case
+        /// </summary>
+        public static string GetOSPlatform() =>
+            _supportedOSPlatform.FirstOrDefault(RuntimeInformation.IsOSPlatform).ToString() is string osPlatform && !string.IsNullOrWhiteSpace(osPlatform)
+            ? char.ToUpper(osPlatform[0]) + osPlatform[1..].ToLower()
+            : string.Empty;
     }
 }
