@@ -11,7 +11,7 @@
 	<ItemGroup>
 		<PackageReference Include="Blazor.ECharts" Version="1.0.4" />
 		<PackageReference Include="Microsoft.JSInterop" Version="8.0.12" />
-		<PackageReference Include="Radzen.Blazor" Version="5.7.5" />
+		<PackageReference Include="Radzen.Blazor" Version="5.7.8" />
 		<PackageReference Include="Serilog" Version="4.2.0" />
 		<PackageReference Include="Serilog.Extensions.Logging" Version="9.0.0" />
 		<PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
