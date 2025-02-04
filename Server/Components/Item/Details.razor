@@ -4,7 +4,7 @@
 @if (Item is null)
     return;
 
-<div class="ml-[5vw] mt-6 grid max-w-fit justify-center gap-6 2sm:ml-[10vw] 2sm:justify-start lg:mt-0">
+<div class="ml-[5vw] mt-6 grid max-w-fit justify-center gap-6 lg:mt-0">
     <div class="flex items-center gap-2">
         <RadzenImage class="flex-shrink-0" Path=@Item.Icon />
         <h1 class="m-0 align-middle">@Item.Name</h1>
@@ -19,7 +19,7 @@
 
 <div class="flex justify-center">
     <div class="mt-6 flex max-w-fit flex-col items-center justify-center rounded-xl border-[10px] border-[var(--primary-color)] bg-[var(--primary-color)] md:flex-row">
-        <div class="grid gap-4 sm:grid-cols-[auto,auto] sm:gap-10 md:grid-cols-[auto,auto,auto] md:gap-20">
+        <div class="grid gap-4 sm:gap-10 md:flex md:gap-20">
             <div class="col-span-1">
                 <DataDisplay TooltipService=TooltipService Label="Insta Buy" LabelTooltip="Latest Buy price"
                              Value=@Item.InstaBuy ValueTooltip=false ValueFormatter=@(value => ((long)value).ToString("N0")) />
