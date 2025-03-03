@@ -9,7 +9,7 @@
     "tailwind-release": "cross-env NODE_ENV=production npx @tailwindcss/cli -i ./wwwroot/CSS/app.css -o ./wwwroot/CSS/tailwind-app.css --minify"
   },
   "devDependencies": {
-    "typescript": "^5.7.3",
+    "typescript": "^5.8.2",
     "tailwindcss": "^4.0.8",
     "@tailwindcss/cli": "^4.0.9",
     "cross-env": "^7.0.3",
