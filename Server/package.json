@@ -14,7 +14,7 @@
     "@tailwindcss/cli": "^4.1.10",
     "cross-env": "^7.0.3",
     "glob": "^11.0.3",
-    "concurrently": "^9.1.2",
+    "concurrently": "^9.2.0",
     "uglify-js": "^3.19.3"
   },
   "include": [
