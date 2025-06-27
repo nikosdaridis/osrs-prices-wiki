@@ -11,7 +11,7 @@
   "devDependencies": {
     "typescript": "^5.8.3",
     "tailwindcss": "^4.1.10",
-    "@tailwindcss/cli": "^4.1.10",
+    "@tailwindcss/cli": "^4.1.11",
     "cross-env": "^7.0.3",
     "glob": "^11.0.3",
     "concurrently": "^9.2.0",
