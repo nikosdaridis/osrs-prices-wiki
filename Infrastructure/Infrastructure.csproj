@@ -7,10 +7,10 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="MailKit" Version="4.10.0" />
-		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.1" />
-		<PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.1" />
-		<PackageReference Include="Microsoft.Extensions.Options" Version="9.0.1" />
+		<PackageReference Include="MailKit" Version="4.13.0" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.7" />
+		<PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.7" />
+		<PackageReference Include="Microsoft.Extensions.Options" Version="9.0.7" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 	</ItemGroup>
 
