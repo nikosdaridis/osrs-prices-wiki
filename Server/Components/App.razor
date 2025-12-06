@@ -32,16 +32,20 @@
     <meta name="twitter:description" content="Get the most Accurate and Real Time Prices for items in Old School RuneScape. Discover the best items for flipping and money making. Track Live and Historical Prices, sort and filter items and maximize your profit with our powerful tools. Powered by RuneLite and the OSRS community." />
     <meta name="twitter:image" content="https://oldschool.runescape.wiki/images/thumb/Coins_detail.png/120px-Coins_detail.png?404bc" />
     <meta name="twitter:card" content="summary_large_image" />
+
+    <ResourcePreloader />
+    <ImportMap />
 </head>
 
 <body class="bg-[var(--secondary-color)] text-[var(--text-color)]">
     <Routes @rendermode=InteractiveServer />
-    <script src="_framework/blazor.web.js"></script>
+    <script src="@Assets["_framework/blazor.web.js"]"></script>
     <script src="JavaScript/app.js"></script>
     <script type="module" src="JavaScript/echarts.min.js"></script>
     <script type="module" src="JavaScript/eChartsInterop.js"></script>
     <script src="_content/Radzen.Blazor/Radzen.Blazor.js"></script>
     <script type="module" src="_content/Blazor.ECharts/core.js"></script>
+    <ReconnectModal />
 </body>
 
 </html>
