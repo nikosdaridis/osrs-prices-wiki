@@ -193,7 +193,7 @@ namespace Infrastructure.Services
                     Accessibility = mapping.Members ? Accessibility.Members : Accessibility.FreeToPlay,
                 };
 
-                item.Tax = item.InstaBuy >= 100 ? Math.Min((int)item.InstaBuy / 100, 5000000) : 0;
+                item.Tax = item.InstaBuy >= 50 ? Math.Min((int)item.InstaBuy / 50, 5000000) : 0;
                 item.Margin = item.InstaBuy - item.InstaSell - item.Tax;
                 item.MarginXLimit = item.Margin * item.Limit;
                 item.MarginXVolume = item.Margin * volume;
