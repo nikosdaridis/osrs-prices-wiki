@@ -8,6 +8,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.JSInterop" Version="10.0.6" />
+		<PackageReference Include="Serilog" Version="4.3.1" />
 	</ItemGroup>
 
 </Project>
