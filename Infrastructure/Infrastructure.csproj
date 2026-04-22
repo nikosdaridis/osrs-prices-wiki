@@ -10,7 +10,7 @@
 		<PackageReference Include="MailKit" Version="4.16.0" />
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.7" />
 		<PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.6" />
-		<PackageReference Include="Microsoft.Extensions.Options" Version="10.0.6" />
+		<PackageReference Include="Microsoft.Extensions.Options" Version="10.0.7" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
 		<PackageReference Include="Serilog" Version="4.3.1" />
 	</ItemGroup>
