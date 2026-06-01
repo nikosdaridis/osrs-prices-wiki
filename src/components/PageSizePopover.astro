@@ -1,0 +1,294 @@
+---
+import { MAX_PAGE_SIZE, MIN_PAGE_SIZE } from "../scripts/page-sizes";
+---
+
+<div id="page-size-popover" class="relative inline-flex shrink-0">
+  <button
+    id="page-size-trigger"
+    type="button"
+    class="inline-flex h-7 items-center gap-1.5 rounded border border-border bg-surface px-2 text-[13px] text-fg hover:border-accent focus:border-accent focus:outline-none"
+    aria-haspopup="true"
+    aria-expanded="false"
+    title="Items per page"
+  >
+    <span class="hidden text-muted sm:inline">Items</span>
+    <span id="page-size-value" class="text-fg tabular-nums">50</span>
+    <svg
+      viewBox="0 0 24 24"
+      width="11"
+      height="11"
+      class="text-muted"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      aria-hidden="true"
+    >
+      <path d="m6 9 6 6 6-6"></path>
+    </svg>
+  </button>
+
+  <div
+    id="page-size-menu"
+    class="absolute right-0 bottom-full z-30 mb-1 hidden w-56 max-w-[calc(100vw-2rem)] overflow-hidden rounded border border-border bg-surface-elevated shadow-lg"
+    role="menu"
+  >
+    <div
+      class="px-2 pt-1.5 text-[12px] tracking-wider text-muted-foreground uppercase"
+    >
+      Items per page
+    </div>
+
+    <div id="page-size-list" class="flex flex-col gap-1.5 px-2 py-1.5"></div>
+
+    <div class="flex items-center gap-1 border-t border-border px-2 py-1.5">
+      <input
+        id="page-size-custom"
+        type="number"
+        inputmode="numeric"
+        min={MIN_PAGE_SIZE}
+        max={MAX_PAGE_SIZE}
+        placeholder="e.g. 123"
+        autocomplete="off"
+        aria-label="Custom items per page"
+        class="h-7 w-full min-w-0 rounded border border-border bg-surface px-2 text-[13px] text-fg placeholder:text-muted-foreground focus:border-accent focus:outline-none"
+      />
+      <button
+        id="page-size-save"
+        type="button"
+        class="inline-flex h-7 shrink-0 items-center gap-1 rounded border border-dashed border-border bg-transparent px-2 text-[13px] text-muted transition-colors enabled:hover:border-accent enabled:hover:text-accent disabled:opacity-40"
+        title="Save custom page size"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          width="12"
+          height="12"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M12 5v14"></path>
+          <path d="M5 12h14"></path>
+        </svg>
+        Save
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  import {
+    PREDEFINED_PAGE_SIZES,
+    deleteCustomPageSize,
+    isValidPageSize,
+    listCustomPageSizes,
+    saveCustomPageSize,
+  } from "../scripts/page-sizes";
+  import { clampMenuIntoViewport } from "../scripts/menu-position";
+
+  const DEFAULT_PAGE_SIZE = 50;
+
+  const rootElement = document.getElementById("page-size-popover");
+  const triggerElement = document.getElementById("page-size-trigger");
+  const menuElement = document.getElementById("page-size-menu");
+  const listElement = document.getElementById("page-size-list");
+  const valueElement = document.getElementById("page-size-value");
+  const customInputElement = document.getElementById("page-size-custom");
+  const saveButtonElement = document.getElementById("page-size-save");
+
+  if (
+    rootElement !== null &&
+    triggerElement !== null &&
+    menuElement !== null &&
+    listElement !== null &&
+    valueElement !== null &&
+    customInputElement instanceof HTMLInputElement &&
+    saveButtonElement instanceof HTMLButtonElement
+  ) {
+    const root: HTMLElement = rootElement;
+    const trigger: HTMLElement = triggerElement;
+    const menu: HTMLElement = menuElement;
+    const list: HTMLElement = listElement;
+    const valueDisplay: HTMLElement = valueElement;
+    const customInput: HTMLInputElement = customInputElement;
+    const saveButton: HTMLButtonElement = saveButtonElement;
+
+    let currentSize = DEFAULT_PAGE_SIZE;
+
+    function isOpen(): boolean {
+      return !menu.classList.contains("hidden");
+    }
+
+    function chip(size: number, active: boolean): string {
+      const base =
+        "h-7 shrink-0 rounded border px-2.5 text-[13px] tabular-nums transition-colors";
+      const skin = active
+        ? "border-accent bg-accent text-bg"
+        : "border-border bg-surface text-fg hover:border-accent hover:text-accent";
+      return `<button type="button" role="menuitemradio" aria-checked="${active}" data-size="${size}" class="${base} ${skin}">${size}</button>`;
+    }
+
+    function customChip(size: number, active: boolean): string {
+      const sizeSkin = active
+        ? "border-accent bg-accent text-bg"
+        : "border-border bg-surface text-fg hover:border-accent hover:text-accent";
+      const deleteHover =
+        "hover:border-danger hover:bg-danger/10 hover:text-danger";
+      const deleteSkin = active
+        ? `border-accent bg-accent text-bg ${deleteHover}`
+        : `border-border bg-surface text-muted ${deleteHover}`;
+      return `<span class="inline-flex shrink-0 items-center">
+                <button type="button" role="menuitemradio" aria-checked="${active}" data-size="${size}" class="h-7 rounded rounded-r-none border border-r-0 px-2.5 text-[13px] tabular-nums transition-colors ${sizeSkin}">${size}</button>
+                <button type="button" data-delete-size="${size}" aria-label="Delete saved size ${size}" title="Delete saved size" class="grid h-7 w-6 place-items-center rounded rounded-l-none border ${deleteSkin}">
+                    <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+                </button>
+            </span>`;
+    }
+
+    function render(): void {
+      const customSizes = listCustomPageSizes();
+      let html = `<div class="flex flex-wrap gap-1">`;
+      for (const size of PREDEFINED_PAGE_SIZES) {
+        html += chip(size, size === currentSize);
+      }
+      html += `</div>`;
+      if (customSizes.length > 0) {
+        html += `<div class="text-[11px] uppercase tracking-wider text-muted-foreground">Saved</div>`;
+        html += `<div class="flex flex-wrap gap-1">`;
+        for (const size of customSizes) {
+          html += customChip(size, size === currentSize);
+        }
+        html += `</div>`;
+      }
+      list.innerHTML = html;
+    }
+
+    function openMenu(): void {
+      render();
+      menu.classList.remove("hidden");
+      trigger.setAttribute("aria-expanded", "true");
+      clampMenuIntoViewport(menu);
+      updateSaveEnabled();
+    }
+
+    function closeMenu(): void {
+      menu.classList.add("hidden");
+      trigger.setAttribute("aria-expanded", "false");
+    }
+
+    function setCurrentSize(size: number): void {
+      currentSize = size;
+      valueDisplay.textContent = String(size);
+      if (isOpen()) {
+        render();
+      }
+    }
+
+    function applySize(size: number): void {
+      setCurrentSize(size);
+      window.dispatchEvent(
+        new CustomEvent("page-size:change", { detail: { size } }),
+      );
+      closeMenu();
+    }
+
+    function trySave(): void {
+      const size = Number.parseInt(customInput.value, 10);
+      if (!isValidPageSize(size)) {
+        customInput.classList.add("border-danger");
+        return;
+      }
+      customInput.classList.remove("border-danger");
+      saveCustomPageSize(size);
+      customInput.value = "";
+      applySize(size);
+    }
+
+    function isCustomSizeValid(): boolean {
+      return isValidPageSize(Number.parseInt(customInput.value, 10));
+    }
+
+    function updateSaveEnabled(): void {
+      saveButton.disabled = !isCustomSizeValid();
+    }
+
+    trigger.addEventListener("click", (event) => {
+      event.stopPropagation();
+      if (isOpen()) {
+        closeMenu();
+      } else {
+        openMenu();
+      }
+    });
+
+    list.addEventListener("click", (event) => {
+      const target = event.target;
+      if (!(target instanceof Element)) {
+        return;
+      }
+
+      const deleteButton =
+        target.closest<HTMLButtonElement>("[data-delete-size]");
+      if (deleteButton !== null) {
+        event.stopPropagation();
+        const size = Number.parseInt(deleteButton.dataset.deleteSize ?? "", 10);
+        if (!Number.isNaN(size)) {
+          deleteCustomPageSize(size);
+          render();
+        }
+        return;
+      }
+
+      const sizeButton = target.closest<HTMLButtonElement>("[data-size]");
+      if (sizeButton !== null) {
+        const size = Number.parseInt(sizeButton.dataset.size ?? "", 10);
+        if (!Number.isNaN(size)) {
+          applySize(size);
+        }
+      }
+    });
+
+    saveButton.addEventListener("click", trySave);
+
+    customInput.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        trySave();
+      }
+    });
+
+    customInput.addEventListener("input", () => {
+      customInput.classList.remove("border-danger");
+      updateSaveEnabled();
+    });
+
+    document.addEventListener("click", (event) => {
+      const target = event.target;
+      if (target instanceof Node && root.contains(target)) {
+        return;
+      }
+      closeMenu();
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        closeMenu();
+      }
+    });
+
+    window.addEventListener("pagination:change", (event) => {
+      const detail = (event as CustomEvent<{ pageSize: number }>).detail;
+      if (detail === undefined || typeof detail.pageSize !== "number") {
+        return;
+      }
+      setCurrentSize(detail.pageSize);
+    });
+
+    valueDisplay.textContent = String(currentSize);
+    updateSaveEnabled();
+  }
+</script>

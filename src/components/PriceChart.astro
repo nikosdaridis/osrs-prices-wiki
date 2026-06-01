@@ -1,0 +1,61 @@
+---
+const timesteps = [
+  { id: "5m", label: "5M" },
+  { id: "1h", label: "1H" },
+  { id: "6h", label: "6H" },
+  { id: "24h", label: "24H" },
+];
+---
+
+<div class="flex h-full flex-col gap-2">
+  <div class="flex items-center justify-between">
+    <div class="flex items-baseline gap-2">
+      <h3 class="text-[13px] tracking-wider text-muted uppercase">Price</h3>
+      <span
+        id="chart-change"
+        class="rounded px-1.5 py-px text-[11px] text-muted tabular-nums">—</span
+      >
+    </div>
+    <div
+      class="inline-flex items-center gap-0.5 rounded border border-border p-0.5"
+      role="tablist"
+      aria-label="Chart interval"
+    >
+      {
+        timesteps.map((step) => (
+          <button
+            type="button"
+            role="tab"
+            data-timestep={step.id}
+            aria-selected={step.id === "5m"}
+            class:list={[
+              "timestep-pill",
+              "h-6 rounded px-2.5 text-[12px] font-medium tracking-wide transition-colors",
+              "aria-selected:bg-surface-elevated aria-selected:text-fg aria-selected:shadow-sm",
+              "text-muted hover:text-fg",
+            ]}
+          >
+            {step.label}
+          </button>
+        ))
+      }
+    </div>
+  </div>
+
+  <div id="chart" class="min-h-50 w-full flex-1 lg:min-h-0"></div>
+
+  <div
+    class="mx-50 grid grid-cols-3 items-center gap-x-4 text-[11px] text-muted tabular-nums"
+    title="Low / Average / High of the insta-buy price over the selected interval"
+  >
+    <span class="text-left"
+      >Low <span id="chart-low" class="font-medium text-fg">—</span></span
+    >
+    <span class="text-center"
+      >Avg <span id="chart-avg" class="font-medium text-fg">—</span></span
+    >
+    <span class="text-right"
+      >High <span id="chart-high" class="font-medium text-fg">—</span></span
+    >
+  </div>
+</div>

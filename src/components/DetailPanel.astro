@@ -1,0 +1,206 @@
+---
+import Metric from "./Metric.astro";
+import PriceChart from "./PriceChart.astro";
+---
+
+<aside
+  id="detail-panel"
+  class="hidden h-auto max-h-[48vh] shrink-0 overflow-y-auto border-b border-border bg-bg lg:h-85 lg:max-h-none lg:overflow-visible"
+>
+  <div
+    class="grid h-auto grid-cols-1 gap-6 px-4 py-3 lg:h-full lg:grid-cols-[1fr_1fr]"
+  >
+    <div class="flex flex-col gap-3 overflow-hidden">
+      <div class="flex items-start gap-3">
+        <img
+          id="detail-icon"
+          src=""
+          alt=""
+          width="28"
+          height="28"
+          class="mt-1 size-7 shrink-0 object-contain"
+          onerror="this.style.opacity='0.2'"
+        />
+        <div class="flex min-w-0 flex-1 flex-col">
+          <div class="flex items-center gap-1.5">
+            <h2 id="detail-name" class="truncate text-sm font-medium text-fg">
+              —
+            </h2>
+            <img
+              id="detail-members"
+              src=""
+              alt=""
+              width="16"
+              height="16"
+              class="size-4 shrink-0 object-contain"
+            />
+            <span id="detail-id" class="text-xs text-muted">—</span>
+          </div>
+          <div
+            class="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[12px] text-muted"
+          >
+            <span id="detail-examine" class="text-muted-foreground">—</span>
+          </div>
+        </div>
+        <button
+          id="detail-star"
+          type="button"
+          class="grid size-7 place-items-center rounded text-muted hover:bg-surface-elevated"
+          aria-label="Toggle watchlist"
+          aria-pressed="false"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            width="14"
+            height="14"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <polygon
+              points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
+            ></polygon>
+          </svg>
+        </button>
+        <button
+          id="detail-close"
+          type="button"
+          class="grid size-7 place-items-center rounded text-muted hover:bg-surface-elevated hover:text-fg"
+          aria-label="Close detail panel"
+          title="Close"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            width="14"
+            height="14"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M18 6 6 18"></path>
+            <path d="m6 6 12 12"></path>
+          </svg>
+        </button>
+      </div>
+
+      <div
+        id="metric-grid"
+        class="grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-4"
+      >
+        <Metric
+          id="m-buy"
+          label="Buy"
+          emphasis
+          title="Instant-buy price — what you pay to buy now"
+        />
+        <Metric
+          id="m-sell"
+          label="Sell"
+          emphasis
+          title="Instant-sell price — what you receive selling now"
+        />
+        <Metric
+          id="m-margin"
+          label="Margin"
+          emphasis
+          title="Profit per item after the GE tax (buy − sell − tax)"
+        />
+        <Metric
+          id="m-potential"
+          label="Potential Profit"
+          title="Margin × buy limit — max profit per 4h limit"
+        />
+        <Metric
+          id="m-last-buy"
+          label="Last Buy"
+          title="Time since the last insta-buy"
+        />
+        <Metric
+          id="m-last-sell"
+          label="Last Sell"
+          title="Time since the last insta-sell"
+        />
+        <Metric id="m-roi" label="ROI" title="Margin ÷ sell price" />
+        <Metric
+          id="m-margin-vol"
+          label="Margin × Vol"
+          emphasis
+          title="Margin × daily volume"
+        />
+        <Metric
+          id="m-avgbuy"
+          label="24h Avg Buy"
+          title="Average insta-buy price over the latest 24h"
+        />
+        <Metric
+          id="m-avgsell"
+          label="24h Avg Sell"
+          title="Average insta-sell price over the latest 24h"
+        />
+        <Metric
+          id="m-change"
+          label="Buy vs 24h Avg"
+          title="Current insta-buy vs the 24h average buy price"
+        />
+        <Metric id="m-tax" label="Tax" title="Grand Exchange sell tax" />
+        <Metric
+          id="m-volume"
+          label="Daily Volume"
+          title="Units traded in the last 24h"
+        />
+        <Metric id="m-limit" label="Limit" title="GE buy limit per 4 hours" />
+        <Metric
+          id="m-highalch"
+          label="High Alch"
+          title="Coins from High Level Alchemy"
+        />
+        <Metric
+          id="m-lowalch"
+          label="Low Alch"
+          title="Coins from Low Level Alchemy"
+        />
+      </div>
+
+      <div class="flex items-center gap-3 pt-1 text-[12px] text-muted">
+        <a
+          id="detail-wiki"
+          href="https://oldschool.runescape.wiki"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center gap-1 hover:text-fg"
+        >
+          Wiki
+          <svg
+            viewBox="0 0 24 24"
+            width="10"
+            height="10"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M7 17 17 7"></path>
+            <path d="M7 7h10v10"></path>
+          </svg>
+        </a>
+      </div>
+    </div>
+
+    <div class="flex min-h-0 flex-col">
+      <PriceChart />
+    </div>
+  </div>
+</aside>
+
+<script>
+  import { init } from "../scripts/detail-panel";
+  init();
+</script>

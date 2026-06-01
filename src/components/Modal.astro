@@ -1,0 +1,61 @@
+---
+
+---
+
+<div
+  id="modal-root"
+  class="fixed inset-0 z-50 hidden items-center justify-center p-4"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="modal-title"
+>
+  <div
+    id="modal-backdrop"
+    class="absolute inset-0 bg-black/70 backdrop-blur-sm"
+  >
+  </div>
+  <div
+    class="relative w-full max-w-sm overflow-hidden rounded-md border border-border bg-surface-elevated shadow-xl"
+  >
+    <div class="border-b border-border px-4 py-3">
+      <h3 id="modal-title" class="text-sm font-semibold text-fg">—</h3>
+    </div>
+    <div class="px-4 py-4">
+      <p
+        id="modal-message"
+        class="hidden text-[14px] leading-relaxed text-muted"
+      >
+      </p>
+      <label id="modal-field" class="hidden flex-col gap-1.5">
+        <span
+          id="modal-label"
+          class="text-[13px] tracking-wider text-muted-foreground uppercase"
+        ></span>
+        <input
+          id="modal-input"
+          type="text"
+          class="h-9 w-full rounded border border-border bg-bg px-2 text-[14px] text-fg placeholder:text-muted-foreground focus:border-accent focus:outline-none"
+          autocomplete="off"
+        />
+      </label>
+    </div>
+    <div
+      class="flex justify-end gap-2 border-t border-border bg-surface px-4 py-2.5"
+    >
+      <button
+        id="modal-cancel"
+        type="button"
+        class="h-8 rounded border border-border bg-transparent px-3 text-[14px] text-fg hover:border-accent hover:text-accent"
+      >
+        Cancel
+      </button>
+      <button
+        id="modal-confirm"
+        type="button"
+        class="h-8 rounded bg-accent px-3 text-[14px] font-medium text-bg transition-colors enabled:hover:bg-accent-bright disabled:opacity-40"
+      >
+        OK
+      </button>
+    </div>
+  </div>
+</div>

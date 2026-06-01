@@ -1,0 +1,207 @@
+---
+import { SEARCH_SCOPE_STORAGE_KEY } from "../scripts/search-scope";
+---
+
+<div class="order-2 flex w-full items-center gap-2 sm:w-auto">
+  <label
+    class="relative flex flex-1 items-center sm:w-64 sm:flex-none"
+    for="search"
+  >
+    <svg
+      class="pointer-events-none absolute left-2 size-3 text-muted"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      aria-hidden="true"
+    >
+      <circle cx="11" cy="11" r="8"></circle>
+      <path d="m21 21-4.3-4.3"></path>
+    </svg>
+    <input
+      id="search"
+      type="text"
+      placeholder="Search items"
+      autocomplete="off"
+      class="search-box__field h-8 w-full rounded border border-border bg-surface pr-8 pl-7 text-[14px] text-fg placeholder:text-muted-foreground focus:border-accent focus:outline-none"
+    />
+    <button
+      id="search-clear"
+      type="button"
+      aria-label="Clear search"
+      title="Clear search"
+      class="search-box__clear absolute right-2 size-4 place-items-center rounded text-muted hover:text-fg"
+    >
+      <svg
+        viewBox="0 0 24 24"
+        width="12"
+        height="12"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M18 6 6 18"></path>
+        <path d="m6 6 12 12"></path>
+      </svg>
+    </button>
+  </label>
+
+  <div
+    id="search-scope"
+    class="flex shrink-0 items-center"
+    role="group"
+    aria-label="Search scope"
+  >
+    <button
+      type="button"
+      data-scope="view"
+      aria-selected="true"
+      title="Search only items in the current view"
+      class="h-8 rounded rounded-r-none border border-r-0 border-border bg-surface px-2 text-[13px] text-fg transition-colors hover:border-accent hover:text-accent aria-selected:border-accent aria-selected:bg-accent aria-selected:text-bg aria-selected:hover:text-bg"
+    >
+      View
+    </button>
+    <button
+      type="button"
+      data-scope="watchlist"
+      aria-selected="false"
+      title="Show only watchlisted items in the current view"
+      aria-label="Watchlist only"
+      class="grid h-8 place-items-center rounded-none border border-r-0 border-border bg-surface px-2 text-fg transition-colors hover:border-accent hover:text-accent aria-selected:border-accent aria-selected:bg-accent aria-selected:text-bg aria-selected:hover:text-bg"
+    >
+      <svg
+        viewBox="0 0 24 24"
+        width="13"
+        height="13"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <polygon
+          points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
+        ></polygon>
+      </svg>
+    </button>
+    <button
+      type="button"
+      data-scope="all"
+      aria-selected="false"
+      title="Search all items, ignoring the current view filters"
+      class="h-8 rounded rounded-l-none border border-border bg-surface px-2 text-[13px] text-fg transition-colors hover:border-accent hover:text-accent aria-selected:border-accent aria-selected:bg-accent aria-selected:text-bg aria-selected:hover:text-bg"
+    >
+      All
+    </button>
+  </div>
+
+  <script is:inline define:vars={{ storageKey: SEARCH_SCOPE_STORAGE_KEY }}>
+    try {
+      const stored = localStorage.getItem(storageKey);
+      const scope =
+        stored === "all" || stored === "watchlist" ? stored : "view";
+      document
+        .getElementById("search-scope")
+        ?.querySelectorAll("[data-scope]")
+        .forEach((button) => {
+          button.setAttribute(
+            "aria-selected",
+            String(button.getAttribute("data-scope") === scope),
+          );
+        });
+    } catch {}
+  </script>
+</div>
+
+<style>
+  .search-box__clear {
+    display: none;
+  }
+
+  .search-box__field:not(:placeholder-shown) ~ .search-box__clear {
+    display: grid;
+  }
+</style>
+
+<script>
+  import {
+    readSearchScope,
+    writeSearchScope,
+    type SearchScope,
+  } from "../scripts/search-scope";
+
+  const SEARCH_DEBOUNCE_MS = 120;
+
+  const input = document.getElementById("search");
+  const clearButton = document.getElementById("search-clear");
+  const scopeGroup = document.getElementById("search-scope");
+
+  if (
+    input instanceof HTMLInputElement &&
+    clearButton instanceof HTMLButtonElement &&
+    scopeGroup !== null
+  ) {
+    let timer: ReturnType<typeof setTimeout> | null = null;
+
+    function dispatchSearch(value: string): void {
+      window.dispatchEvent(
+        new CustomEvent("search:change", { detail: { value } }),
+      );
+    }
+
+    input.addEventListener("input", () => {
+      if (timer !== null) {
+        clearTimeout(timer);
+      }
+      timer = setTimeout(() => dispatchSearch(input.value), SEARCH_DEBOUNCE_MS);
+    });
+
+    clearButton.addEventListener("click", () => {
+      if (timer !== null) {
+        clearTimeout(timer);
+      }
+      input.value = "";
+      input.focus();
+      dispatchSearch("");
+    });
+
+    const scopeButtons =
+      scopeGroup.querySelectorAll<HTMLButtonElement>("[data-scope]");
+
+    function syncScope(scope: SearchScope): void {
+      scopeButtons.forEach((button) => {
+        button.setAttribute(
+          "aria-selected",
+          String(button.dataset.scope === scope),
+        );
+      });
+    }
+
+    scopeButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        window.dispatchEvent(
+          new CustomEvent("search-scope:change", {
+            detail: { scope: button.dataset.scope as SearchScope },
+          }),
+        );
+      });
+    });
+
+    window.addEventListener("search-scope:change", (event) => {
+      const detail = (event as CustomEvent<{ scope: SearchScope }>).detail;
+      if (detail === undefined) {
+        return;
+      }
+      writeSearchScope(detail.scope);
+      syncScope(detail.scope);
+    });
+
+    syncScope(readSearchScope());
+  }
+</script>

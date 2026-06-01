@@ -1,0 +1,46 @@
+---
+import "@fontsource-variable/geist/index.css";
+import "@fontsource-variable/geist-mono/index.css";
+import "../styles/global.css";
+import Header from "../components/Header.astro";
+import Modal from "../components/Modal.astro";
+
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const {
+  title,
+  description = "Real-time Old School RuneScape Grand Exchange prices, margins, ROI and price charts.",
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="generator" content={Astro.generator} />
+    <meta name="description" content={description} />
+    <meta name="color-scheme" content="dark" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://prices.runescape.wiki" />
+    <link
+      rel="preconnect"
+      href="https://oldschool.runescape.wiki"
+      crossorigin
+    />
+    <title>{title}</title>
+  </head>
+  <body class="flex flex-col">
+    <Header>
+      <slot name="toolbar" slot="toolbar" />
+    </Header>
+    <main class="flex flex-1 flex-col overflow-hidden">
+      <slot />
+    </main>
+    <slot name="footer" />
+    <Modal />
+  </body>
+</html>

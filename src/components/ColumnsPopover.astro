@@ -1,0 +1,387 @@
+---
+import {
+  DEFAULT_VIEW_ID,
+  PREDEFINED_VIEWS,
+  VIEWS_STORAGE_KEY,
+} from "../scripts/views";
+
+const predefinedColumnCountMap: Record<string, number> = Object.fromEntries(
+  PREDEFINED_VIEWS.map((view) => [
+    view.id,
+    view.state.columnState.filter((column) => column.hide !== true).length,
+  ]),
+);
+---
+
+<div id="columns-popover" class="relative inline-flex shrink-0">
+  <button
+    id="columns-trigger"
+    type="button"
+    class="inline-flex h-8 items-center gap-1.5 rounded border border-border bg-surface px-2 text-[14px] text-fg hover:border-accent focus:border-accent focus:outline-none"
+    aria-haspopup="true"
+    aria-expanded="false"
+    title="Show or hide columns"
+  >
+    <span class="text-muted">Columns</span>
+    <span id="columns-count" class="text-fg tabular-nums">—</span>
+    <svg
+      viewBox="0 0 24 24"
+      width="11"
+      height="11"
+      class="text-muted"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      aria-hidden="true"
+    >
+      <path d="m6 9 6 6 6-6"></path>
+    </svg>
+  </button>
+
+  <div
+    id="columns-menu"
+    class="absolute top-full right-0 z-30 mt-1 hidden w-60 max-w-[calc(100vw-2rem)] overflow-hidden rounded border border-border bg-surface-elevated shadow-lg"
+    role="menu"
+  >
+    <div
+      class="px-2 pt-1.5 text-[14px] tracking-wider text-muted-foreground uppercase"
+    >
+      Manage columns
+    </div>
+    <div class="px-2 py-1.5">
+      <label class="relative flex items-center" for="columns-filter">
+        <input
+          id="columns-filter"
+          type="text"
+          placeholder="Search columns"
+          autocomplete="off"
+          aria-label="Search columns"
+          class="columns-filter__field h-7 w-full rounded border border-border bg-surface pr-7 pl-2 text-[13px] text-fg placeholder:text-muted-foreground focus:border-accent focus:outline-none"
+        />
+        <button
+          id="columns-filter-clear"
+          type="button"
+          aria-label="Clear column search"
+          title="Clear column search"
+          class="columns-filter__clear absolute right-2 size-4 place-items-center rounded text-muted hover:text-fg"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            width="12"
+            height="12"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M18 6 6 18"></path>
+            <path d="m6 6 12 12"></path>
+          </svg>
+        </button>
+      </label>
+    </div>
+    <div
+      class="flex items-center gap-1 border-b border-border px-2 pb-1.5 text-[12px]"
+    >
+      <button
+        id="columns-show-all"
+        type="button"
+        class="rounded border border-border bg-surface px-1.5 py-0.5 text-fg hover:border-accent hover:text-accent"
+      >
+        Show all
+      </button>
+      <button
+        id="columns-reset"
+        type="button"
+        class="rounded border border-border bg-surface px-1.5 py-0.5 text-fg hover:border-accent hover:text-accent"
+      >
+        Reset
+      </button>
+      <button
+        id="columns-hide-all"
+        type="button"
+        class="rounded border border-border bg-surface px-1.5 py-0.5 text-fg hover:border-accent hover:text-accent"
+      >
+        Hide all
+      </button>
+    </div>
+    <ul
+      id="columns-list"
+      class="flex max-h-[60vh] flex-col overflow-y-auto py-1"
+    >
+    </ul>
+  </div>
+</div>
+
+<style>
+  .columns-filter__clear {
+    display: none;
+  }
+
+  .columns-filter__field:not(:placeholder-shown) ~ .columns-filter__clear {
+    display: grid;
+  }
+</style>
+
+<script
+  is:inline
+  define:vars={{
+    storageKey: VIEWS_STORAGE_KEY,
+    defaultId: DEFAULT_VIEW_ID,
+    predefinedCountMap: predefinedColumnCountMap,
+  }}
+>
+  try {
+    const countVisible = (columnState) =>
+      Array.isArray(columnState)
+        ? columnState.filter((column) => column && column.hide !== true).length
+        : null;
+
+    const raw = localStorage.getItem(storageKey);
+    const stored = raw ? JSON.parse(raw) : null;
+
+    let count =
+      stored && stored.scratch
+        ? countVisible(stored.scratch.columnState)
+        : null;
+    if (count === null) {
+      const activeId =
+        stored && typeof stored.activeViewId === "string"
+          ? stored.activeViewId
+          : defaultId;
+      if (Object.prototype.hasOwnProperty.call(predefinedCountMap, activeId)) {
+        count = predefinedCountMap[activeId];
+      } else if (stored && Array.isArray(stored.custom)) {
+        const custom = stored.custom.find(
+          (view) => view && view.id === activeId,
+        );
+        count = custom
+          ? countVisible(custom.state && custom.state.columnState)
+          : null;
+      }
+    }
+    if (count === null) {
+      count = predefinedCountMap[defaultId];
+    }
+
+    const element = document.getElementById("columns-count");
+    if (element && typeof count === "number") {
+      element.textContent = String(count);
+    }
+  } catch {}
+</script>
+
+<script>
+  import {
+    COLUMN_GROUPS,
+    getColumnVisibility,
+    getVisibleColumnCount,
+    hideAllColumns,
+    resetColumnsToDefault,
+    setColumnPinned,
+    setColumnVisible,
+    showAllColumns,
+    type ColumnVisibilityEntry,
+    type PinSide,
+  } from "../scripts/grid";
+  import { escapeHtml } from "../scripts/html";
+  import { clampMenuIntoViewport } from "../scripts/menu-position";
+
+  const rootElement = document.getElementById("columns-popover");
+  const triggerElement = document.getElementById("columns-trigger");
+  const menuElement = document.getElementById("columns-menu");
+  const listElement = document.getElementById("columns-list");
+  const countElement = document.getElementById("columns-count");
+  const filterInput = document.getElementById("columns-filter");
+  const filterClearButton = document.getElementById("columns-filter-clear");
+  const showAllButton = document.getElementById("columns-show-all");
+  const resetButton = document.getElementById("columns-reset");
+  const hideAllButton = document.getElementById("columns-hide-all");
+
+  if (
+    rootElement !== null &&
+    triggerElement !== null &&
+    menuElement !== null &&
+    listElement !== null &&
+    countElement !== null
+  ) {
+    const root: HTMLElement = rootElement;
+    const trigger: HTMLElement = triggerElement;
+    const menu: HTMLElement = menuElement;
+    const list: HTMLElement = listElement;
+    const countDisplay: HTMLElement = countElement;
+
+    function openMenu(): void {
+      menu.classList.remove("hidden");
+      trigger.setAttribute("aria-expanded", "true");
+      clampMenuIntoViewport(menu);
+    }
+
+    function closeMenu(): void {
+      menu.classList.add("hidden");
+      trigger.setAttribute("aria-expanded", "false");
+    }
+
+    function applyFilter(): void {
+      if (!(filterInput instanceof HTMLInputElement)) {
+        return;
+      }
+      const query = filterInput.value.trim().toLowerCase();
+      const groups = list.querySelectorAll<HTMLElement>("[data-group]");
+      groups.forEach((group) => {
+        const labels = group.querySelectorAll<HTMLElement>("[data-col-label]");
+        let anyVisible = false;
+        labels.forEach((label) => {
+          const text = (label.textContent ?? "").toLowerCase();
+          const match = query === "" || text.includes(query);
+          const row = label.closest<HTMLElement>("li");
+          if (row !== null) {
+            row.classList.toggle("hidden", !match);
+          }
+          if (match) {
+            anyVisible = true;
+          }
+        });
+        group.classList.toggle("hidden", !anyVisible);
+      });
+    }
+
+    function refresh(): void {
+      const byId = new Map<string, ColumnVisibilityEntry>(
+        getColumnVisibility().map((column) => [column.colId, column]),
+      );
+      let html = "";
+      for (const group of COLUMN_GROUPS) {
+        const rows = group.colIds
+          .map((colId) => byId.get(colId))
+          .filter(
+            (column): column is ColumnVisibilityEntry => column !== undefined,
+          );
+        if (rows.length === 0) {
+          continue;
+        }
+        html += `<li data-group>`;
+        html += `<div class="px-2.5 pb-0.5 pt-1 text-[11px] uppercase tracking-wider text-muted-foreground">${escapeHtml(group.label)}</div>`;
+        html += `<ul class="flex flex-col">`;
+        for (const column of rows) {
+          const pinControl = `<span class="flex shrink-0 items-center pr-1.5">
+                                <button type="button" data-pin-id="${escapeHtml(column.colId)}" data-pin-side="left" aria-pressed="${column.pinned === "left" ? "true" : "false"}" aria-label="Pin left" title="Pin left" class="grid size-5 place-items-center rounded ${column.pinned === "left" ? "text-accent" : "text-muted hover:text-fg"}">
+                                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 19V5"></path><path d="m13 6-6 6 6 6"></path><path d="M7 12h14"></path></svg>
+                                </button>
+                                <button type="button" data-pin-id="${escapeHtml(column.colId)}" data-pin-side="right" aria-pressed="${column.pinned === "right" ? "true" : "false"}" aria-label="Pin right" title="Pin right" class="grid size-5 place-items-center rounded ${column.pinned === "right" ? "text-accent" : "text-muted hover:text-fg"}">
+                                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 5v14"></path><path d="m11 18 6-6-6-6"></path><path d="M17 12H3"></path></svg>
+                                </button>
+                            </span>`;
+          html += `
+                        <li class="flex items-center gap-1 hover:bg-bg">
+                            <label class="flex min-w-0 flex-1 cursor-pointer items-center gap-2 py-1.5 pl-2.5 text-[14px] text-fg">
+                                <input
+                                    type="checkbox"
+                                    data-col-id="${escapeHtml(column.colId)}"
+                                    ${column.hide ? "" : "checked"}
+                                    class="size-3.5 cursor-pointer accent-[var(--color-accent)]"
+                                />
+                                <span data-col-label class="min-w-0 flex-1 truncate">${escapeHtml(column.headerName)}</span>
+                            </label>
+                            ${pinControl}
+                        </li>`;
+        }
+        html += `</ul></li>`;
+      }
+      list.innerHTML = html;
+      countDisplay.textContent = String(getVisibleColumnCount());
+      applyFilter();
+    }
+
+    trigger.addEventListener("click", (event) => {
+      event.stopPropagation();
+      if (menu.classList.contains("hidden")) {
+        refresh();
+        openMenu();
+      } else {
+        closeMenu();
+      }
+    });
+
+    list.addEventListener("change", (event) => {
+      const target = event.target;
+      if (!(target instanceof HTMLInputElement)) {
+        return;
+      }
+      const colId = target.dataset.colId;
+      if (colId === undefined) {
+        return;
+      }
+      setColumnVisible(colId, target.checked);
+      countDisplay.textContent = String(getVisibleColumnCount());
+    });
+
+    list.addEventListener("click", (event) => {
+      const target = event.target;
+      const button =
+        target instanceof Element ? target.closest("[data-pin-id]") : null;
+      if (!(button instanceof HTMLElement)) {
+        return;
+      }
+      const colId = button.dataset.pinId;
+      const side = button.dataset.pinSide;
+      if (colId === undefined || (side !== "left" && side !== "right")) {
+        return;
+      }
+
+      const nextSide: PinSide =
+        button.getAttribute("aria-pressed") === "true" ? null : side;
+      setColumnPinned(colId, nextSide);
+      refresh();
+    });
+
+    if (filterInput instanceof HTMLInputElement) {
+      filterInput.addEventListener("input", applyFilter);
+
+      filterClearButton?.addEventListener("click", () => {
+        filterInput.value = "";
+        filterInput.focus();
+        applyFilter();
+      });
+    }
+
+    showAllButton?.addEventListener("click", () => {
+      showAllColumns();
+      refresh();
+    });
+
+    resetButton?.addEventListener("click", () => {
+      resetColumnsToDefault();
+      refresh();
+    });
+
+    hideAllButton?.addEventListener("click", () => {
+      hideAllColumns();
+      refresh();
+    });
+
+    document.addEventListener("click", (event) => {
+      const target = event.target;
+      if (target instanceof Node && root.contains(target)) {
+        return;
+      }
+      closeMenu();
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        closeMenu();
+      }
+    });
+
+    window.addEventListener("view:change", () => {
+      refresh();
+    });
+
+    refresh();
+  }
+</script>

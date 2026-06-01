@@ -1,0 +1,258 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg: oklch(0.145 0 0);
+  --color-surface: oklch(0.18 0 0);
+  --color-surface-elevated: oklch(0.205 0 0);
+  --color-border: oklch(0.269 0 0);
+  --color-border-strong: oklch(0.35 0 0);
+  --color-muted: oklch(0.6 0 0);
+  --color-muted-foreground: oklch(0.708 0 0);
+  --color-fg: oklch(0.985 0 0);
+
+  --color-accent: #3fb950;
+  --color-accent-soft: #3fb95022;
+  --color-accent-bright: #56d364;
+  --focus-ring: 0 0 0 3px
+    color-mix(in srgb, var(--color-accent) 50%, transparent);
+  --color-negative: #8a8a8a;
+  --color-danger: #e9687e;
+  --color-danger-soft: #e9687e22;
+  --color-warn: #ffcc66;
+  --color-info: #6c9dff;
+
+  --font-mono:
+    "Geist Mono Variable", ui-monospace, SFMono-Regular, Menlo, Monaco,
+    Consolas, monospace;
+  --font-sans: "Geist Variable", system-ui, -apple-system, sans-serif;
+
+  --radius-sm: 3px;
+  --radius: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+}
+
+html,
+body {
+  height: 100%;
+  background-color: var(--color-bg);
+  color: var(--color-fg);
+  font-family: var(--font-mono);
+  font-feature-settings:
+    "tnum" 1,
+    "zero" 1;
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  overflow: hidden;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-border-strong);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-muted);
+}
+
+@keyframes pulse-dot {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+.live-dot {
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+.metric-tile--ghost {
+  opacity: 0.4;
+  outline: 1px dashed var(--color-border-strong);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
+}
+
+@layer base {
+  :where(button, a[href], [role="button"], [role="tab"]):not(:disabled) {
+    cursor: pointer;
+  }
+}
+
+.ag-grid-host .ag-row {
+  cursor: pointer;
+}
+
+.ag-menu .ag-filter-select .ag-picker-field-wrapper {
+  width: auto;
+  overflow: visible;
+}
+.ag-menu .ag-filter-select .ag-picker-field-display {
+  overflow: visible;
+  text-overflow: clip;
+  white-space: nowrap;
+}
+.ag-menu .ag-filter .ag-filter-body-wrapper {
+  min-width: 220px;
+}
+.ag-select-list {
+  width: max-content;
+  min-width: 100%;
+  max-width: 320px;
+}
+.ag-select-list .ag-select-list-item-text {
+  overflow: visible;
+  text-overflow: clip;
+  white-space: nowrap;
+}
+
+.osrs-filter {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ag-spacing, 8px);
+  padding: var(--ag-spacing, 8px);
+  width: 220px;
+}
+
+.osrs-filter__row {
+  display: flex;
+  gap: var(--ag-spacing, 8px);
+  align-items: stretch;
+}
+
+.osrs-filter__value {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.osrs-filter__value .ag-wrapper {
+  min-width: 0;
+}
+
+.osrs-filter__value .ag-input-field-input {
+  width: 100%;
+  min-width: 0;
+}
+
+.osrs-filter > .osrs-select {
+  width: 100%;
+}
+
+.osrs-filter__row > .osrs-select {
+  flex: 0 0 auto;
+  min-width: 96px;
+}
+
+.osrs-select {
+  position: relative;
+}
+
+.osrs-select__control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 28px;
+  padding: 4px 8px;
+  color: var(--color-fg);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font: inherit;
+  cursor: pointer;
+}
+
+.osrs-select__control:focus,
+.osrs-select--open .osrs-select__control {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: var(--focus-ring);
+}
+
+.osrs-select__label {
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.osrs-select__chevron {
+  display: flex;
+  flex: none;
+  color: var(--color-muted);
+}
+
+.osrs-select__list {
+  position: fixed;
+  max-height: 240px;
+  overflow-y: auto;
+  padding-block: 0;
+  color: var(--color-fg);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 0.45);
+  font: inherit;
+}
+
+.osrs-select__option {
+  padding-block: 5px;
+  padding-inline: 12px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.osrs-select__option--active {
+  background: var(--color-surface-elevated);
+}
+
+.ag-input-field-input[data-osrs-clear="true"] {
+  padding-inline-end: 22px;
+}
+
+.osrs-input-clear {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-end: 4px;
+  display: none;
+  place-items: center;
+  padding: 2px;
+  background: none;
+  border: 0;
+  color: var(--color-muted);
+  cursor: pointer;
+}
+
+.osrs-input-clear--visible {
+  display: grid;
+}
+
+.osrs-input-clear:hover {
+  color: var(--color-fg);
+}
+
+.osrs-filter--members {
+  gap: calc(var(--ag-spacing, 8px) / 2);
+}
+
+.osrs-filter__check {
+  display: flex;
+  align-items: center;
+  gap: var(--ag-spacing, 8px);
+  cursor: pointer;
+}
+
+.osrs-filter__check .ag-checkbox-input-wrapper:focus-within {
+  box-shadow: var(--focus-ring);
+}

@@ -1,0 +1,240 @@
+---
+import {
+  DEFAULT_VIEW_ID,
+  PREDEFINED_VIEWS,
+  VIEWS_STORAGE_KEY,
+} from "../scripts/views";
+
+const predefinedItems = PREDEFINED_VIEWS.map((view) => ({
+  id: view.id,
+  name: view.name,
+}));
+---
+
+<div
+  id="view-selector"
+  class="order-3 flex w-full min-w-0 flex-wrap items-center gap-1 sm:w-auto sm:flex-auto"
+  role="tablist"
+  aria-label="Views"
+>
+  <slot />
+
+  {
+    predefinedItems.map((view) => (
+      <button
+        type="button"
+        role="tab"
+        data-view-id={view.id}
+        aria-selected={view.id === DEFAULT_VIEW_ID}
+        class:list={[
+          "view-chip",
+          "h-8 shrink-0 rounded px-2.5 text-[14px] transition-colors",
+          "border border-border bg-surface text-fg hover:border-accent hover:text-accent",
+          "aria-selected:border-accent aria-selected:bg-accent aria-selected:text-bg aria-selected:hover:text-bg",
+        ]}
+      >
+        {view.name}
+      </button>
+    ))
+  }
+
+  <div id="view-custom-separator" class="hidden h-5 w-px shrink-0 bg-border">
+  </div>
+
+  <div id="view-custom-list" class="flex flex-wrap items-center gap-1"></div>
+
+  <button
+    id="view-save"
+    type="button"
+    class="ml-1 inline-flex h-8 shrink-0 items-center gap-1 rounded border border-dashed border-border bg-transparent px-2 text-[14px] text-muted hover:border-accent hover:text-accent"
+    title="Save current custom view"
+  >
+    <svg
+      viewBox="0 0 24 24"
+      width="12"
+      height="12"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M12 5v14"></path>
+      <path d="M5 12h14"></path>
+    </svg>
+    Save view
+  </button>
+</div>
+
+<script
+  is:inline
+  define:vars={{ storageKey: VIEWS_STORAGE_KEY, defaultId: DEFAULT_VIEW_ID }}
+>
+  try {
+    const raw = localStorage.getItem(storageKey);
+    const parsed = raw ? JSON.parse(raw) : null;
+    const activeId =
+      parsed && typeof parsed.activeViewId === "string"
+        ? parsed.activeViewId
+        : defaultId;
+    document
+      .getElementById("view-selector")
+      ?.querySelectorAll("[data-view-id]")
+      .forEach((chip) => {
+        chip.setAttribute(
+          "aria-selected",
+          String(chip.getAttribute("data-view-id") === activeId),
+        );
+      });
+  } catch {}
+</script>
+
+<script>
+  import { confirmModal, promptModal } from "../scripts/modal";
+  import {
+    deleteCustomView,
+    getActiveView,
+    listViews,
+    saveCurrentAsView,
+    setActiveView,
+    type View,
+  } from "../scripts/views";
+
+  const rootElement = document.getElementById("view-selector");
+  const customListElement = document.getElementById("view-custom-list");
+  const customSeparatorElement = document.getElementById(
+    "view-custom-separator",
+  );
+  const saveButtonElement = document.getElementById("view-save");
+
+  if (
+    rootElement !== null &&
+    customListElement !== null &&
+    customSeparatorElement !== null &&
+    saveButtonElement !== null
+  ) {
+    const root: HTMLElement = rootElement;
+    const customList: HTMLElement = customListElement;
+    const customSeparator: HTMLElement = customSeparatorElement;
+    const saveButton: HTMLElement = saveButtonElement;
+
+    const CHIP_CLASS =
+      "view-chip h-8 truncate max-w-[160px] rounded rounded-r-none border border-r-0 border-border bg-surface px-2.5 shrink-0 text-[14px] text-fg hover:border-accent hover:text-accent aria-selected:border-accent aria-selected:bg-accent aria-selected:text-bg aria-selected:hover:text-bg";
+    const DELETE_CLASS =
+      "view-chip-delete grid h-8 w-6 shrink-0 place-items-center rounded rounded-l-none border border-border bg-surface text-muted hover:border-danger hover:bg-danger/10 hover:text-danger aria-selected:border-accent aria-selected:bg-accent aria-selected:text-bg aria-selected:hover:border-danger aria-selected:hover:bg-danger/10 aria-selected:hover:text-danger";
+    const DELETE_ICON_SVG =
+      '<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>';
+
+    function createCustomChip(view: View): HTMLDivElement {
+      const wrapper = document.createElement("div");
+      wrapper.className =
+        "view-custom-wrapper group relative inline-flex shrink-0 items-center";
+
+      const chip = document.createElement("button");
+      chip.type = "button";
+      chip.setAttribute("role", "tab");
+      chip.dataset.viewId = view.id;
+      chip.className = CHIP_CLASS;
+      chip.textContent = view.name;
+
+      const deleteButton = document.createElement("button");
+      deleteButton.type = "button";
+      deleteButton.dataset.deleteId = view.id;
+      deleteButton.setAttribute("aria-label", "Delete custom view");
+      deleteButton.title = "Delete custom view";
+      deleteButton.className = DELETE_CLASS;
+      deleteButton.innerHTML = DELETE_ICON_SVG;
+
+      wrapper.append(chip, deleteButton);
+      return wrapper;
+    }
+
+    function renderCustomChips(): void {
+      const customViews = listViews().filter((view) => !view.isPredefined);
+      customList.innerHTML = "";
+      if (customViews.length === 0) {
+        customSeparator.classList.add("hidden");
+        return;
+      }
+      customSeparator.classList.remove("hidden");
+      for (const view of customViews) {
+        customList.appendChild(createCustomChip(view));
+      }
+    }
+
+    function syncActive(activeId: string): void {
+      const chips = root.querySelectorAll<HTMLButtonElement>(".view-chip");
+      chips.forEach((chip) => {
+        const matches = chip.dataset.viewId === activeId;
+        chip.setAttribute("aria-selected", String(matches));
+      });
+      const deleteButtons =
+        root.querySelectorAll<HTMLButtonElement>("[data-delete-id]");
+      deleteButtons.forEach((button) => {
+        const matches = button.dataset.deleteId === activeId;
+        button.setAttribute("aria-selected", String(matches));
+      });
+    }
+
+    root.addEventListener("click", async (event) => {
+      const target = event.target;
+      if (!(target instanceof Element)) {
+        return;
+      }
+
+      const deleteButton =
+        target.closest<HTMLButtonElement>("[data-delete-id]");
+      if (deleteButton !== null) {
+        event.stopPropagation();
+        event.preventDefault();
+        const id = deleteButton.dataset.deleteId;
+        if (id === undefined) {
+          return;
+        }
+        const views = listViews();
+        const target_view = views.find((view: View) => view.id === id);
+        const name = target_view?.name ?? "this view";
+        const ok = await confirmModal({
+          title: "DELETE VIEW",
+          message: `Remove "${name}" from your custom views?`,
+          primary: "Delete",
+          danger: true,
+        });
+        if (ok) {
+          deleteCustomView(id);
+        }
+        return;
+      }
+
+      const viewButton = target.closest<HTMLButtonElement>("[data-view-id]");
+      if (viewButton !== null) {
+        const id = viewButton.dataset.viewId;
+        if (id !== undefined) {
+          setActiveView(id);
+        }
+      }
+    });
+
+    saveButton.addEventListener("click", async () => {
+      const name = await promptModal({
+        title: "SAVE VIEW",
+        label: "View name",
+        placeholder: "e.g. My flips",
+        primary: "Save",
+      });
+      if (name === null) {
+        return;
+      }
+      saveCurrentAsView(name);
+    });
+
+    window.addEventListener("view:change", () => {
+      renderCustomChips();
+      syncActive(getActiveView().id);
+    });
+
+    renderCustomChips();
+    syncActive(getActiveView().id);
+  }
+</script>

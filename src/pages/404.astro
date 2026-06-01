@@ -1,0 +1,20 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Footer from "../components/Footer.astro";
+---
+
+<BaseLayout title="Not found · OSRS Prices">
+  <div
+    class="flex flex-1 flex-col items-center justify-center gap-3 px-4 text-center"
+  >
+    <h1 class="text-2xl font-semibold text-accent">404</h1>
+    <p class="text-sm text-muted">That page doesn't exist.</p>
+    <a
+      href="/"
+      class="rounded border border-border bg-surface px-3 py-1.5 text-[14px] text-fg hover:border-accent hover:text-accent"
+    >
+      Back to home
+    </a>
+  </div>
+  <Footer slot="footer" />
+</BaseLayout>

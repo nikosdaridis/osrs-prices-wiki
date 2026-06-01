@@ -1,0 +1,169 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import ColumnsPopover from "../components/ColumnsPopover.astro";
+import DetailPanel from "../components/DetailPanel.astro";
+import ItemGrid from "../components/ItemGrid.astro";
+import PaginationBar from "../components/PaginationBar.astro";
+import SearchBox from "../components/SearchBox.astro";
+import ViewSelector from "../components/ViewSelector.astro";
+---
+
+<BaseLayout title="OSRS Prices · Live Grand Exchange data">
+  <DetailPanel />
+
+  <Fragment slot="toolbar">
+    <SearchBox />
+
+    <ViewSelector>
+      <ColumnsPopover />
+    </ViewSelector>
+  </Fragment>
+
+  <div class="relative flex flex-1 flex-col overflow-hidden">
+    <div
+      id="loading-banner"
+      class="absolute inset-x-0 top-0 z-10 hidden border-b border-border bg-surface px-4 py-1 text-center text-[13px] text-muted"
+    >
+      Loading data
+    </div>
+    <div
+      id="error-banner"
+      class="absolute inset-x-0 top-0 z-10 hidden border-b border-danger/30 bg-danger/10 px-4 py-1 text-center text-[13px] text-danger"
+    >
+      <span id="error-message">Could not load data.</span>
+      <button id="error-retry" type="button" class="ml-2 underline"
+        >Retry</button
+      >
+    </div>
+    <div
+      id="search-nudge"
+      class="absolute inset-x-0 top-9 z-10 hidden border-b border-border bg-surface px-4 py-1 text-center text-[13px] text-muted"
+    >
+      No matches in this view
+      <button
+        id="search-nudge-all"
+        type="button"
+        class="text-accent underline hover:text-accent-bright"
+      >
+        Search all <span id="search-nudge-count">0</span> items
+      </button>
+    </div>
+    <ItemGrid />
+    <PaginationBar />
+  </div>
+</BaseLayout>
+
+<script>
+  import {
+    initGrid,
+    setRowData,
+    type SearchResultDetail,
+  } from "../scripts/grid";
+  import {
+    fetchSnapshot,
+    startPolling,
+    startRefreshCountdown,
+  } from "../scripts/poll";
+  import { setItems as setDetailItems } from "../scripts/detail-panel";
+  import { initViews } from "../scripts/views";
+
+  function showLoading(show: boolean): void {
+    const element = document.getElementById("loading-banner");
+    if (element !== null) {
+      element.classList.toggle("hidden", !show);
+    }
+  }
+
+  function showError(message: string | null): void {
+    const banner = document.getElementById("error-banner");
+    const text = document.getElementById("error-message");
+    if (banner === null || text === null) {
+      return;
+    }
+    if (message === null) {
+      banner.classList.add("hidden");
+      return;
+    }
+    text.textContent = message;
+    banner.classList.remove("hidden");
+  }
+
+  const container = document.getElementById("item-grid");
+  if (container !== null) {
+    initGrid(container);
+    initViews();
+  }
+
+  startRefreshCountdown("refresh-countdown");
+
+  showLoading(true);
+  fetchSnapshot()
+    .then((items) => {
+      showLoading(false);
+      setRowData(items);
+      setDetailItems(items);
+      startPolling(
+        (next) => {
+          setRowData(next);
+          setDetailItems(next);
+          showError(null);
+        },
+        (error) => {
+          showError(
+            error instanceof Error ? error.message : "Could not refresh data.",
+          );
+        },
+      );
+    })
+    .catch((error: unknown) => {
+      showLoading(false);
+      showError(
+        error instanceof Error ? error.message : "Could not load data.",
+      );
+    });
+
+  document.getElementById("error-retry")?.addEventListener("click", () => {
+    showError(null);
+    showLoading(true);
+    fetchSnapshot()
+      .then((items) => {
+        showLoading(false);
+        setRowData(items);
+        setDetailItems(items);
+      })
+      .catch((error: unknown) => {
+        showLoading(false);
+        showError(
+          error instanceof Error ? error.message : "Could not load data.",
+        );
+      });
+  });
+
+  const searchNudge = document.getElementById("search-nudge");
+  const searchNudgeCount = document.getElementById("search-nudge-count");
+  const searchNudgeAll = document.getElementById("search-nudge-all");
+  if (
+    searchNudge !== null &&
+    searchNudgeCount !== null &&
+    searchNudgeAll !== null
+  ) {
+    searchNudgeAll.addEventListener("click", () => {
+      window.dispatchEvent(
+        new CustomEvent("search-scope:change", { detail: { scope: "all" } }),
+      );
+    });
+
+    window.addEventListener("search:result", (event) => {
+      const detail = (event as CustomEvent<SearchResultDetail>).detail;
+      if (detail === undefined) {
+        return;
+      }
+      const show =
+        detail.scope === "view" && detail.query !== "" && detail.rowCount === 0;
+      searchNudge.classList.toggle("hidden", !show);
+      if (show) {
+        searchNudgeCount.textContent = detail.total.toLocaleString("en-US");
+      }
+    });
+  }
+</script>
