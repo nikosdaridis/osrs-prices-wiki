@@ -18,8 +18,8 @@
   "dependencies": {
     "@fontsource-variable/geist": "^5.2.9",
     "@fontsource-variable/geist-mono": "^5.2.8",
-    "ag-grid-community": "^35.3.0",
-    "astro": "^6.4.2",
+    "ag-grid-community": "^35.3.1",
+    "astro": "^6.4.3",
     "echarts": "^6.1.0",
     "sortablejs": "^1.15.7"
   },
@@ -32,7 +32,7 @@
     "prettier-plugin-tailwindcss": "^0.8.0",
     "tailwindcss": "^4.3.0",
     "typescript": "^6.0.3",
-    "vitest": "^4.1.7"
+    "vitest": "^4.1.8"
   },
   "overrides": {
     "vite": "^7"

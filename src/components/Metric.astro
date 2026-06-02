@@ -10,25 +10,30 @@ const { id, label, title, emphasis = false } = Astro.props;
 ---
 
 <div
-  class="group relative flex flex-col gap-0.5 select-none"
+  class="metric-tile group relative flex flex-col gap-0.5 select-none"
   title={title}
   data-metric-id={id}
 >
-  <svg
-    class="pointer-events-none absolute top-0 right-0 text-muted opacity-0 transition-opacity group-hover:opacity-50"
-    width="6"
-    height="10"
-    viewBox="0 0 6 10"
-    fill="currentColor"
+  <span
+    class="metric-tile__drag-handle absolute top-0 right-0 flex cursor-grab touch-none p-1 text-muted opacity-0 transition-opacity group-hover:opacity-70 active:cursor-grabbing"
     aria-hidden="true"
   >
-    <circle cx="1.5" cy="1.5" r="0.9"></circle>
-    <circle cx="4.5" cy="1.5" r="0.9"></circle>
-    <circle cx="1.5" cy="5" r="0.9"></circle>
-    <circle cx="4.5" cy="5" r="0.9"></circle>
-    <circle cx="1.5" cy="8.5" r="0.9"></circle>
-    <circle cx="4.5" cy="8.5" r="0.9"></circle>
-  </svg>
+    <svg
+      class="pointer-events-none"
+      width="6"
+      height="10"
+      viewBox="0 0 6 10"
+      fill="currentColor"
+      aria-hidden="true"
+    >
+      <circle cx="1.5" cy="1.5" r="0.9"></circle>
+      <circle cx="4.5" cy="1.5" r="0.9"></circle>
+      <circle cx="1.5" cy="5" r="0.9"></circle>
+      <circle cx="4.5" cy="5" r="0.9"></circle>
+      <circle cx="1.5" cy="8.5" r="0.9"></circle>
+      <circle cx="4.5" cy="8.5" r="0.9"></circle>
+    </svg>
+  </span>
   <span class="pr-3 text-[11px] tracking-wider text-muted-foreground uppercase">
     {label}
   </span>

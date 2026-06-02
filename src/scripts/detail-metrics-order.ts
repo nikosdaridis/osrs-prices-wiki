@@ -3,6 +3,7 @@ import Sortable from "sortablejs";
 const STORAGE_KEY = "osrs-prices-detail-metrics-order";
 const METRIC_ID_ATTR = "data-metric-id";
 const GRID_ID = "metric-grid";
+const HANDLE_SELECTOR = ".metric-tile__drag-handle";
 
 const DEFAULT_ORDER: readonly string[] = [
   "m-buy",
@@ -107,6 +108,7 @@ export function initMetricsReorder(): void {
   const sortable = Sortable.create(grid, {
     animation: 150,
     dataIdAttr: METRIC_ID_ATTR,
+    handle: HANDLE_SELECTOR,
     ghostClass: "metric-tile--ghost",
     onEnd: () => write(sortable.toArray()),
   });

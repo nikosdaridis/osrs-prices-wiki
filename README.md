@@ -38,7 +38,7 @@ npm run dev
 
 ## Data Source
 
-Price data comes from the [OSRS Wiki Prices API](https://prices.runescape.wiki/api/v1/osrs), consumed in `src/scripts/api.ts` and polled in `src/scripts/poll.ts`:
+Price data comes from the [OSRS Wiki Prices API](https://oldschool.runescape.wiki/w/RuneScape:Real-time_Prices):
 
 | Endpoint                                             | Purpose                                        |
 | ---------------------------------------------------- | ---------------------------------------------- |
@@ -47,8 +47,6 @@ Price data comes from the [OSRS Wiki Prices API](https://prices.runescape.wiki/a
 | `/volumes`                                           | Trading volume data                            |
 | `/24h`                                               | 24-hour average prices and volumes             |
 | `/timeseries?timestep={5m\|1h\|6h\|24h}&id={itemId}` | Historical price series                        |
-
-Data refreshes on load and every **60 seconds** thereafter. Requests send the `x-application: osrsprices.wiki` header per the API's identification guidelines.
 
 ## License
 
