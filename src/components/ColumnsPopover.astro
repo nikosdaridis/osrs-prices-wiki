@@ -97,6 +97,7 @@ const predefinedColumnCountMap: Record<string, number> = Object.fromEntries(
       <button
         id="columns-reset"
         type="button"
+        title="Reset to the view's defaults"
         class="rounded border border-border bg-surface px-1.5 py-0.5 text-fg hover:border-accent hover:text-accent"
       >
         Reset
@@ -181,13 +182,13 @@ const predefinedColumnCountMap: Record<string, number> = Object.fromEntries(
     getColumnVisibility,
     getVisibleColumnCount,
     hideAllColumns,
-    resetColumnsToDefault,
     setColumnPinned,
     setColumnVisible,
     showAllColumns,
     type ColumnVisibilityEntry,
     type PinSide,
   } from "../scripts/grid";
+  import { getActiveView, setActiveView } from "../scripts/views";
   import { escapeHtml } from "../scripts/html";
   import { clampMenuIntoViewport } from "../scripts/menu-position";
 
@@ -355,8 +356,7 @@ const predefinedColumnCountMap: Record<string, number> = Object.fromEntries(
     });
 
     resetButton?.addEventListener("click", () => {
-      resetColumnsToDefault();
-      refresh();
+      setActiveView(getActiveView().id);
     });
 
     hideAllButton?.addEventListener("click", () => {

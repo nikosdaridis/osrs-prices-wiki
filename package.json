@@ -19,7 +19,7 @@
     "@fontsource-variable/geist": "^5.2.9",
     "@fontsource-variable/geist-mono": "^5.2.8",
     "ag-grid-community": "^35.3.1",
-    "astro": "^6.4.4",
+    "astro": "^6.4.5",
     "echarts": "^6.1.0",
     "sortablejs": "^1.15.7"
   },
@@ -27,7 +27,7 @@
     "@astrojs/check": "^0.9.9",
     "@tailwindcss/vite": "^4.3.0",
     "@types/sortablejs": "^1.15.9",
-    "prettier": "^3.8.3",
+    "prettier": "^3.8.4",
     "prettier-plugin-astro": "^0.14.1",
     "prettier-plugin-tailwindcss": "^0.8.0",
     "tailwindcss": "^4.3.0",

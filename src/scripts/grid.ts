@@ -890,10 +890,6 @@ export function paginationLast(): void {
 
 const ALWAYS_VISIBLE_COLUMNS: readonly string[] = ["name"];
 
-const DEFAULT_VISIBLE_COLUMNS: readonly string[] = COLUMN_DEFS.filter(
-  (definition) => definition.hide !== true,
-).map((definition) => definition.colId);
-
 export function showAllColumns(): void {
   if (state === null) {
     return;
@@ -910,30 +906,4 @@ export function hideAllColumns(): void {
     (definition) => definition.colId,
   ).filter((id) => !ALWAYS_VISIBLE_COLUMNS.includes(id));
   state.api.setColumnsVisible(ids, false);
-}
-
-export function resetColumnsToDefault(): void {
-  if (state === null) {
-    return;
-  }
-  const visible = new Set<string>([
-    ...DEFAULT_VISIBLE_COLUMNS,
-    ...ALWAYS_VISIBLE_COLUMNS,
-  ]);
-  const toShow: string[] = [];
-  const toHide: string[] = [];
-  for (const definition of COLUMN_DEFS) {
-    const id: string = definition.colId;
-    if (visible.has(id)) {
-      toShow.push(id);
-    } else {
-      toHide.push(id);
-    }
-  }
-  if (toShow.length > 0) {
-    state.api.setColumnsVisible(toShow, true);
-  }
-  if (toHide.length > 0) {
-    state.api.setColumnsVisible(toHide, false);
-  }
 }
