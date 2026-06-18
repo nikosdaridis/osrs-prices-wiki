@@ -19,7 +19,7 @@
     "@fontsource-variable/geist": "^5.2.9",
     "@fontsource-variable/geist-mono": "^5.2.8",
     "ag-grid-community": "^35.3.1",
-    "astro": "^6.4.7",
+    "astro": "^6.4.8",
     "echarts": "^6.1.0",
     "sortablejs": "^1.15.7"
   },
