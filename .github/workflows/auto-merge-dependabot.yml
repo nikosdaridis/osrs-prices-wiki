@@ -54,16 +54,31 @@ jobs:
         run: npm run test
 
       - name: Commit lock file if changed
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          if ! git diff --quiet package-lock.json; then
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add package-lock.json
-            git commit -m "fix: regenerate lock file after dependency update"
-            git push
-          else
+          if git diff --quiet package-lock.json; then
             echo "Lock file is already in sync, no changes needed."
+            exit 0
           fi
+
+          gh api graphql \
+            -f repo="$GITHUB_REPOSITORY" \
+            -f branch="${{ github.event.pull_request.head.ref }}" \
+            -f oid="$(git rev-parse HEAD)" \
+            -f contents="$(base64 -w0 package-lock.json)" \
+            -f message="fix: regenerate lock file after dependency update" \
+            -f query='
+              mutation($repo: String!, $branch: String!, $oid: GitObjectID!, $contents: Base64String!, $message: String!) {
+                createCommitOnBranch(input: {
+                  branch: { repositoryNameWithOwner: $repo, branchName: $branch },
+                  message: { headline: $message },
+                  expectedHeadOid: $oid,
+                  fileChanges: { additions: [{ path: "package-lock.json", contents: $contents }] }
+                }) {
+                  commit { oid }
+                }
+              }'
 
       - name: Enable auto-merge for Dependabot PRs
         if: contains(github.event.pull_request.labels.*.name, 'automerge')
