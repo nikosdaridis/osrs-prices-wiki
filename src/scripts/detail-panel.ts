@@ -12,20 +12,32 @@ import {
   MEMBER_ICON,
   tradeTimeColorVar,
 } from "./format";
-import type { Item, Timestep } from "./types";
+import { isTimestep, type Item, type Timestep } from "./types";
 import { isWatched, toggleWatch } from "./watchlist";
 
 const GOOD_VOLUME_THRESHOLD = 5_000;
 
-let itemsRef: Item[] = [];
+let itemByIdMap: Map<number, Item> = new Map();
 let currentItem: Item | null = null;
 let currentTimestep: Timestep = "5m";
+const elementCacheMap = new Map<string, HTMLElement>();
+
+function getCachedElementById(id: string): HTMLElement | null {
+  const cached = elementCacheMap.get(id);
+  if (cached !== undefined) {
+    return cached;
+  }
+  const element = document.getElementById(id);
+  if (element !== null) {
+    elementCacheMap.set(id, element);
+  }
+  return element;
+}
 
 export function setItems(items: Item[]): void {
-  itemsRef = items;
+  itemByIdMap = new Map(items.map((item) => [item.id, item]));
   if (currentItem !== null) {
-    const activeItem = currentItem;
-    const updated = items.find((item) => item.id === activeItem.id);
+    const updated = itemByIdMap.get(currentItem.id);
     if (updated !== undefined) {
       currentItem = updated;
       renderHeader(updated);
@@ -42,40 +54,36 @@ export function init(): void {
   }
 
   window.addEventListener("detail:open", (event) => {
-    const detail = (event as CustomEvent<{ itemId: number }>).detail;
-    if (detail === undefined) {
-      return;
-    }
-    const panelElement = document.getElementById("detail-panel");
-    const isOpen =
-      panelElement !== null && !panelElement.classList.contains("hidden");
-    if (isOpen && currentItem !== null && currentItem.id === detail.itemId) {
+    const { itemId } = event.detail;
+    const isOpen = !panel.classList.contains("hidden");
+    if (isOpen && currentItem !== null && currentItem.id === itemId) {
       closePanel();
       return;
     }
-    openPanel(detail.itemId);
+    openPanel(itemId);
   });
 
   document
     .getElementById("detail-close")
     ?.addEventListener("click", closePanel);
 
-  panel
-    .querySelectorAll<HTMLButtonElement>(".timestep-pill")
-    .forEach((button) => {
-      button.addEventListener("click", () => {
-        const timestep = button.dataset.timestep as Timestep;
-        currentTimestep = timestep;
-        panel
-          .querySelectorAll<HTMLButtonElement>(".timestep-pill")
-          .forEach((pill) => {
-            pill.setAttribute("aria-selected", String(pill === button));
-          });
-        if (currentItem !== null) {
-          void loadChart(currentItem.id, timestep);
-        }
+  const timestepPills =
+    panel.querySelectorAll<HTMLButtonElement>(".timestep-pill");
+  timestepPills.forEach((button) => {
+    button.addEventListener("click", () => {
+      if (!isTimestep(button.dataset.timestep)) {
+        return;
+      }
+      const timestep = button.dataset.timestep;
+      currentTimestep = timestep;
+      timestepPills.forEach((pill) => {
+        pill.setAttribute("aria-selected", String(pill === button));
       });
+      if (currentItem !== null) {
+        void loadChart(currentItem.id, timestep);
+      }
     });
+  });
 
   document.getElementById("detail-star")?.addEventListener("click", () => {
     if (currentItem === null) {
@@ -89,15 +97,12 @@ export function init(): void {
 }
 
 function openPanel(itemId: number): void {
-  const item = itemsRef.find((entry) => entry.id === itemId);
+  const item = itemByIdMap.get(itemId);
   if (item === undefined) {
     return;
   }
   currentItem = item;
-  const panel = document.getElementById("detail-panel");
-  if (panel !== null) {
-    panel.classList.remove("hidden");
-  }
+  getCachedElementById("detail-panel")?.classList.remove("hidden");
   renderHeader(item);
   renderMetrics(item);
   void loadChart(item.id, currentTimestep);
@@ -105,10 +110,7 @@ function openPanel(itemId: number): void {
 
 function closePanel(): void {
   currentItem = null;
-  const panel = document.getElementById("detail-panel");
-  if (panel !== null) {
-    panel.classList.add("hidden");
-  }
+  getCachedElementById("detail-panel")?.classList.add("hidden");
   disposeChart();
 }
 
@@ -116,16 +118,16 @@ function renderHeader(item: Item): void {
   setText("detail-name", item.name);
   setText("detail-id", `#${item.id}`);
   setText("detail-examine", item.examine);
-  const memberElement = document.getElementById("detail-members");
-  if (memberElement !== null && memberElement instanceof HTMLImageElement) {
+  const memberElement = getCachedElementById("detail-members");
+  if (memberElement instanceof HTMLImageElement) {
     const membershipLabel = item.members ? "Members" : "Free-to-play";
     memberElement.src = iconUrl(item.members ? MEMBER_ICON : FREE_TO_PLAY_ICON);
     memberElement.alt = membershipLabel;
     memberElement.title = membershipLabel;
   }
 
-  const iconElement = document.getElementById("detail-icon");
-  if (iconElement !== null && iconElement instanceof HTMLImageElement) {
+  const iconElement = getCachedElementById("detail-icon");
+  if (iconElement instanceof HTMLImageElement) {
     iconElement.style.opacity = "1";
     iconElement.src = item.iconUrl;
     iconElement.alt = item.name;
@@ -133,14 +135,14 @@ function renderHeader(item: Item): void {
 
   renderStar(item);
 
-  const wikiLink = document.getElementById("detail-wiki");
-  if (wikiLink !== null && wikiLink instanceof HTMLAnchorElement) {
+  const wikiLink = getCachedElementById("detail-wiki");
+  if (wikiLink instanceof HTMLAnchorElement) {
     wikiLink.href = `https://oldschool.runescape.wiki/w/${encodeURIComponent(item.name.replace(/ /g, "_"))}`;
   }
 }
 
 function renderStar(item: Item): void {
-  const starElement = document.getElementById("detail-star");
+  const starElement = getCachedElementById("detail-star");
   if (starElement === null) {
     return;
   }
@@ -238,7 +240,7 @@ async function loadChart(
   timestep: Timestep,
   silent = false,
 ): Promise<void> {
-  const container = document.getElementById("chart");
+  const container = getCachedElementById("chart");
   if (container === null) {
     return;
   }
@@ -253,14 +255,14 @@ async function loadChart(
 }
 
 function setText(id: string, value: string): void {
-  const element = document.getElementById(id);
+  const element = getCachedElementById(id);
   if (element !== null) {
     element.textContent = value;
   }
 }
 
 function setMetric(id: string, value: string, color: string): void {
-  const element = document.getElementById(id);
+  const element = getCachedElementById(id);
   if (element === null) {
     return;
   }

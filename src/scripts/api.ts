@@ -9,12 +9,25 @@ import type {
 
 const PRICES_BASE = "https://prices.runescape.wiki/api/v1/osrs";
 
+const REQUEST_TIMEOUT_MS = 15_000;
+
 const HEADERS: HeadersInit = {
   "x-application": "osrsprices.wiki",
 };
 
 async function getJson<T>(url: string): Promise<T> {
-  const response = await fetch(url, { headers: HEADERS });
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      headers: HEADERS,
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+    });
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "TimeoutError") {
+      throw new Error(`request timed out for ${url}`);
+    }
+    throw error;
+  }
   if (!response.ok) {
     throw new Error(`request failed (${response.status}) for ${url}`);
   }

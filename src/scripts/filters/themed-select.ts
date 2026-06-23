@@ -192,12 +192,13 @@ export class ThemedSelect<TKey extends string> {
       return;
     }
     const items: HTMLCollection = this._listElement.children;
-    if (this._activeIndex >= 0 && this._activeIndex < items.length) {
-      items[this._activeIndex].classList.remove(ACTIVE_OPTION_CLASS);
+    const previous: Element | undefined = items[this._activeIndex];
+    if (previous !== undefined) {
+      previous.classList.remove(ACTIVE_OPTION_CLASS);
     }
     this._activeIndex = index;
-    if (index >= 0 && index < items.length) {
-      const active: Element = items[index];
+    const active: Element | undefined = items[index];
+    if (active !== undefined) {
       active.classList.add(ACTIVE_OPTION_CLASS);
       active.scrollIntoView({ block: "nearest" });
     }
@@ -239,12 +240,14 @@ export class ThemedSelect<TKey extends string> {
         this.setActiveIndex(Math.max(this._activeIndex - 1, 0));
         break;
       case "Enter":
-      case " ":
+      case " ": {
         event.preventDefault();
-        if (this._activeIndex >= 0) {
-          this.commit(this._options[this._activeIndex].value);
+        const activeOption = this._options[this._activeIndex];
+        if (activeOption !== undefined) {
+          this.commit(activeOption.value);
         }
         break;
+      }
       case "Escape":
         event.preventDefault();
         this.close();

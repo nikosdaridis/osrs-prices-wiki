@@ -29,8 +29,13 @@ interface ModalRefs {
 let activeResolver: ((value: unknown) => void) | null = null;
 let activeMode: "prompt" | "confirm" | null = null;
 let promptValidate: ((value: string) => boolean) | null = null;
+let previouslyFocusedElement: HTMLElement | null = null;
+let cachedRefs: ModalRefs | null = null;
 
 function refs(): ModalRefs | null {
+  if (cachedRefs !== null) {
+    return cachedRefs;
+  }
   const root = document.getElementById("modal-root");
   const backdrop = document.getElementById("modal-backdrop");
   const title = document.getElementById("modal-title");
@@ -55,7 +60,7 @@ function refs(): ModalRefs | null {
   ) {
     return null;
   }
-  return {
+  cachedRefs = {
     root,
     backdrop,
     title,
@@ -66,6 +71,7 @@ function refs(): ModalRefs | null {
     cancel,
     confirm,
   };
+  return cachedRefs;
 }
 
 function isPromptValueValid(references: ModalRefs): boolean {
@@ -95,11 +101,49 @@ function close(value: unknown): void {
   references.confirm.disabled = false;
   promptValidate = null;
   document.removeEventListener("keydown", onKeydown, true);
+  previouslyFocusedElement?.focus();
+  previouslyFocusedElement = null;
   if (activeResolver !== null) {
     const resolver = activeResolver;
     activeResolver = null;
     activeMode = null;
     resolver(value);
+  }
+}
+
+function rememberFocusOrigin(): void {
+  previouslyFocusedElement =
+    document.activeElement instanceof HTMLElement
+      ? document.activeElement
+      : null;
+}
+
+function trapTabFocus(event: KeyboardEvent, references: ModalRefs): void {
+  const focusableElements: HTMLElement[] = [];
+  if (activeMode === "prompt") {
+    focusableElements.push(references.input);
+  }
+  focusableElements.push(references.cancel);
+  if (!references.confirm.disabled) {
+    focusableElements.push(references.confirm);
+  }
+  const firstElement = focusableElements[0];
+  const lastElement = focusableElements[focusableElements.length - 1];
+  if (firstElement === undefined || lastElement === undefined) {
+    return;
+  }
+  const activeElement = document.activeElement;
+  const isInsideModal =
+    activeElement instanceof HTMLElement &&
+    focusableElements.includes(activeElement);
+  if (event.shiftKey) {
+    if (!isInsideModal || activeElement === firstElement) {
+      event.preventDefault();
+      lastElement.focus();
+    }
+  } else if (!isInsideModal || activeElement === lastElement) {
+    event.preventDefault();
+    firstElement.focus();
   }
 }
 
@@ -112,6 +156,11 @@ function onKeydown(event: KeyboardEvent): void {
     const references = refs();
     if (references !== null && isPromptValueValid(references)) {
       close(references.input.value.trim());
+    }
+  } else if (event.key === "Tab") {
+    const references = refs();
+    if (references !== null) {
+      trapTabFocus(event, references);
     }
   }
 }
@@ -170,6 +219,7 @@ export function promptModal(options: PromptOptions): Promise<string | null> {
     promptValidate = options.validate ?? null;
     activeMode = "prompt";
     activeResolver = resolve as (value: unknown) => void;
+    rememberFocusOrigin();
     updateConfirmEnabled();
 
     references.root.classList.remove("hidden");
@@ -217,6 +267,7 @@ export function confirmModal(options: ConfirmOptions): Promise<boolean> {
     promptValidate = null;
     activeMode = "confirm";
     activeResolver = resolve as (value: unknown) => void;
+    rememberFocusOrigin();
     updateConfirmEnabled();
 
     references.root.classList.remove("hidden");

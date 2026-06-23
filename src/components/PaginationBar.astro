@@ -153,7 +153,6 @@ import PageSizePopover from "./PageSizePopover.astro";
     paginationLast,
     paginationNext,
     paginationPrev,
-    type PaginationChangeDetail,
   } from "../scripts/grid";
 
   const indicator = document.getElementById("page-indicator");
@@ -177,11 +176,7 @@ import PageSizePopover from "./PageSizePopover.astro";
     lastButton.addEventListener("click", () => paginationLast());
 
     window.addEventListener("pagination:change", (event) => {
-      const detail = (event as CustomEvent<PaginationChangeDetail>).detail;
-      if (detail === undefined) {
-        return;
-      }
-      const { currentPage, totalPages, rowCount } = detail;
+      const { currentPage, totalPages, rowCount } = event.detail;
       const displayPage = totalPages === 0 ? 0 : currentPage + 1;
       indicator.textContent = `Page ${displayPage} / ${totalPages}`;
       countElement.textContent = rowCount.toLocaleString("en-US");

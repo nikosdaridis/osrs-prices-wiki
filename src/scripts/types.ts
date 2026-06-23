@@ -50,7 +50,13 @@ export interface TimeseriesResponse {
   data: TimeseriesPoint[];
 }
 
-export type Timestep = "5m" | "1h" | "6h" | "24h";
+export const TIMESTEPS = ["5m", "1h", "6h", "24h"] as const;
+
+export type Timestep = (typeof TIMESTEPS)[number];
+
+export function isTimestep(value: string | undefined): value is Timestep {
+  return (TIMESTEPS as readonly string[]).includes(value ?? "");
+}
 
 export interface Item {
   id: number;

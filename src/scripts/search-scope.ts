@@ -1,7 +1,15 @@
-export type SearchScope = "view" | "watchlist" | "all";
+export const SEARCH_SCOPES = ["view", "watchlist", "all"] as const;
+
+export type SearchScope = (typeof SEARCH_SCOPES)[number];
 
 export const SEARCH_SCOPE_STORAGE_KEY = "osrs-prices-search-scope";
 const STORAGE_KEY = SEARCH_SCOPE_STORAGE_KEY;
+
+export function isSearchScope(
+  value: string | null | undefined,
+): value is SearchScope {
+  return (SEARCH_SCOPES as readonly string[]).includes(value ?? "");
+}
 
 export function readSearchScope(): SearchScope {
   if (typeof window === "undefined") {
@@ -9,7 +17,7 @@ export function readSearchScope(): SearchScope {
   }
   try {
     const stored = window.localStorage.getItem(STORAGE_KEY);
-    return stored === "all" || stored === "watchlist" ? stored : "view";
+    return isSearchScope(stored) ? stored : "view";
   } catch {
     return "view";
   }

@@ -88,6 +88,7 @@ import { MAX_PAGE_SIZE, MIN_PAGE_SIZE } from "../scripts/page-sizes";
     listCustomPageSizes,
     saveCustomPageSize,
   } from "../scripts/page-sizes";
+  import { dispatchAppEvent } from "../scripts/events";
   import { clampMenuIntoViewport } from "../scripts/menu-position";
 
   const DEFAULT_PAGE_SIZE = 50;
@@ -190,9 +191,7 @@ import { MAX_PAGE_SIZE, MIN_PAGE_SIZE } from "../scripts/page-sizes";
 
     function applySize(size: number): void {
       setCurrentSize(size);
-      window.dispatchEvent(
-        new CustomEvent("page-size:change", { detail: { size } }),
-      );
+      dispatchAppEvent("page-size:change", { size });
       closeMenu();
     }
 
@@ -281,11 +280,7 @@ import { MAX_PAGE_SIZE, MIN_PAGE_SIZE } from "../scripts/page-sizes";
     });
 
     window.addEventListener("pagination:change", (event) => {
-      const detail = (event as CustomEvent<{ pageSize: number }>).detail;
-      if (detail === undefined || typeof detail.pageSize !== "number") {
-        return;
-      }
-      setCurrentSize(detail.pageSize);
+      setCurrentSize(event.detail.pageSize);
     });
 
     valueDisplay.textContent = String(currentSize);

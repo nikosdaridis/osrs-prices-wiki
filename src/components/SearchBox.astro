@@ -130,7 +130,9 @@ import { SEARCH_SCOPE_STORAGE_KEY } from "../scripts/search-scope";
 </style>
 
 <script>
+  import { dispatchAppEvent } from "../scripts/events";
   import {
+    isSearchScope,
     readSearchScope,
     writeSearchScope,
     type SearchScope,
@@ -150,9 +152,7 @@ import { SEARCH_SCOPE_STORAGE_KEY } from "../scripts/search-scope";
     let timer: ReturnType<typeof setTimeout> | null = null;
 
     function dispatchSearch(value: string): void {
-      window.dispatchEvent(
-        new CustomEvent("search:change", { detail: { value } }),
-      );
+      dispatchAppEvent("search:change", { value });
     }
 
     input.addEventListener("input", () => {
@@ -185,21 +185,17 @@ import { SEARCH_SCOPE_STORAGE_KEY } from "../scripts/search-scope";
 
     scopeButtons.forEach((button) => {
       button.addEventListener("click", () => {
-        window.dispatchEvent(
-          new CustomEvent("search-scope:change", {
-            detail: { scope: button.dataset.scope as SearchScope },
-          }),
-        );
+        if (isSearchScope(button.dataset.scope)) {
+          dispatchAppEvent("search-scope:change", {
+            scope: button.dataset.scope,
+          });
+        }
       });
     });
 
     window.addEventListener("search-scope:change", (event) => {
-      const detail = (event as CustomEvent<{ scope: SearchScope }>).detail;
-      if (detail === undefined) {
-        return;
-      }
-      writeSearchScope(detail.scope);
-      syncScope(detail.scope);
+      writeSearchScope(event.detail.scope);
+      syncScope(event.detail.scope);
     });
 
     syncScope(readSearchScope());

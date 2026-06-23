@@ -4,6 +4,7 @@ import {
   calculateTax,
   colorClassFor,
   colorVarFor,
+  formatClock,
   formatInt,
   formatPercent,
   formatShort,
@@ -11,6 +12,7 @@ import {
   formatTimeAgo,
   formatTimeAgoFromUnix,
   iconUrl,
+  tradeTimeColorVar,
 } from "./format";
 
 describe("formatShort", () => {
@@ -99,8 +101,48 @@ describe("formatTimeAgo", () => {
 describe("formatTimeAgoFromUnix", () => {
   it("derives seconds-ago from the provided clock", () => {
     expect(formatTimeAgoFromUnix(null)).toBe("—");
-    // now = 100s; traded at 40s -> 60s ago -> "1 minute ago".
     expect(formatTimeAgoFromUnix(40, 100_000)).toBe("1 minute ago");
+  });
+});
+
+describe("formatClock", () => {
+  it("renders the local time as HH:MM:SS", () => {
+    const date = new Date(2026, 5, 10, 9, 5, 7);
+    expect(formatClock(date)).toBe("09:05:07");
+    expect(formatClock(date)).toMatch(/^\d{2}:\d{2}:\d{2}$/);
+  });
+
+  it("defaults to the current time", () => {
+    expect(formatClock()).toMatch(/^\d{2}:\d{2}:\d{2}$/);
+  });
+});
+
+describe("tradeTimeColorVar", () => {
+  const NOW_MS = 1_000_000_000;
+  const NOW_SECONDS = NOW_MS / 1000;
+
+  it("returns muted for nullish timestamps", () => {
+    expect(tradeTimeColorVar(null, NOW_MS)).toBe("var(--color-muted)");
+    expect(tradeTimeColorVar(undefined, NOW_MS)).toBe("var(--color-muted)");
+  });
+
+  it("returns accent within the 5-minute recent window, inclusive", () => {
+    expect(tradeTimeColorVar(NOW_SECONDS, NOW_MS)).toBe("var(--color-accent)");
+    expect(tradeTimeColorVar(NOW_SECONDS - 299, NOW_MS)).toBe(
+      "var(--color-accent)",
+    );
+    expect(tradeTimeColorVar(NOW_SECONDS - 300, NOW_MS)).toBe(
+      "var(--color-accent)",
+    );
+  });
+
+  it("returns muted once the trade is older than the window", () => {
+    expect(tradeTimeColorVar(NOW_SECONDS - 301, NOW_MS)).toBe(
+      "var(--color-muted)",
+    );
+    expect(tradeTimeColorVar(NOW_SECONDS - 86_400, NOW_MS)).toBe(
+      "var(--color-muted)",
+    );
   });
 });
 

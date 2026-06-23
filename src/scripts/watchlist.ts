@@ -1,9 +1,6 @@
-const STORAGE_KEY = "osrs-prices-watchlist";
+import { dispatchAppEvent } from "./events";
 
-export interface WatchlistChangeDetail {
-  id: number;
-  watched: boolean;
-}
+const STORAGE_KEY = "osrs-prices-watchlist";
 
 let cachedIds: Set<number> | null = null;
 
@@ -66,10 +63,6 @@ export function toggleWatch(id: number): boolean {
     ids.delete(id);
   }
   write(ids);
-  window.dispatchEvent(
-    new CustomEvent<WatchlistChangeDetail>("watchlist:change", {
-      detail: { id, watched },
-    }),
-  );
+  dispatchAppEvent("watchlist:change", { id, watched });
   return watched;
 }

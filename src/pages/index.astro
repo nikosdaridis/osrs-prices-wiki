@@ -54,11 +54,9 @@ import ViewSelector from "../components/ViewSelector.astro";
 </BaseLayout>
 
 <script>
-  import {
-    initGrid,
-    setRowData,
-    type SearchResultDetail,
-  } from "../scripts/grid";
+  import { dispatchAppEvent } from "../scripts/events";
+  import { initGrid, setRowData } from "../scripts/grid";
+  import { initIconErrorFallback } from "../scripts/icon-fallback";
   import {
     fetchSnapshot,
     startPolling,
@@ -88,6 +86,8 @@ import ViewSelector from "../components/ViewSelector.astro";
     banner.classList.remove("hidden");
   }
 
+  initIconErrorFallback();
+
   const container = document.getElementById("item-grid");
   if (container !== null) {
     initGrid(container);
@@ -96,48 +96,49 @@ import ViewSelector from "../components/ViewSelector.astro";
 
   startRefreshCountdown("refresh-countdown");
 
-  showLoading(true);
-  fetchSnapshot()
-    .then((items) => {
-      showLoading(false);
+  let pollingStarted = false;
+
+  function startPollingOnce(): void {
+    if (pollingStarted) {
+      return;
+    }
+    pollingStarted = true;
+    startPolling(
+      (items) => {
+        setRowData(items);
+        setDetailItems(items);
+        showError(null);
+      },
+      (error) => {
+        showError(
+          error instanceof Error ? error.message : "Could not refresh data.",
+        );
+      },
+    );
+  }
+
+  async function loadAndStart(): Promise<void> {
+    showError(null);
+    showLoading(true);
+    try {
+      const items = await fetchSnapshot();
       setRowData(items);
       setDetailItems(items);
-      startPolling(
-        (next) => {
-          setRowData(next);
-          setDetailItems(next);
-          showError(null);
-        },
-        (error) => {
-          showError(
-            error instanceof Error ? error.message : "Could not refresh data.",
-          );
-        },
-      );
-    })
-    .catch((error: unknown) => {
-      showLoading(false);
+      startPollingOnce();
+    } catch (error: unknown) {
       showError(
         error instanceof Error ? error.message : "Could not load data.",
       );
-    });
+    } finally {
+      showLoading(false);
+    }
+  }
 
-  document.getElementById("error-retry")?.addEventListener("click", () => {
-    showError(null);
-    showLoading(true);
-    fetchSnapshot()
-      .then((items) => {
-        showLoading(false);
-        setRowData(items);
-        setDetailItems(items);
-      })
-      .catch((error: unknown) => {
-        showLoading(false);
-        showError(
-          error instanceof Error ? error.message : "Could not load data.",
-        );
-      });
-  });
+  void loadAndStart();
+
+  document
+    .getElementById("error-retry")
+    ?.addEventListener("click", () => void loadAndStart());
 
   const searchNudge = document.getElementById("search-nudge");
   const searchNudgeCount = document.getElementById("search-nudge-count");
@@ -148,21 +149,15 @@ import ViewSelector from "../components/ViewSelector.astro";
     searchNudgeAll !== null
   ) {
     searchNudgeAll.addEventListener("click", () => {
-      window.dispatchEvent(
-        new CustomEvent("search-scope:change", { detail: { scope: "all" } }),
-      );
+      dispatchAppEvent("search-scope:change", { scope: "all" });
     });
 
     window.addEventListener("search:result", (event) => {
-      const detail = (event as CustomEvent<SearchResultDetail>).detail;
-      if (detail === undefined) {
-        return;
-      }
-      const show =
-        detail.scope === "view" && detail.query !== "" && detail.rowCount === 0;
+      const { scope, query, rowCount, total } = event.detail;
+      const show = scope === "view" && query !== "" && rowCount === 0;
       searchNudge.classList.toggle("hidden", !show);
       if (show) {
-        searchNudgeCount.textContent = detail.total.toLocaleString("en-US");
+        searchNudgeCount.textContent = total.toLocaleString("en-US");
       }
     });
   }

@@ -171,28 +171,20 @@ export async function renderChart(
       return null;
     }
     const points = response.data;
-
-    const buySeries: [number, number | null][] = points.map((point) => [
-      point.timestamp * 1000,
-      point.avgHighPrice,
-    ]);
-    const sellSeries: [number, number | null][] = points.map((point) => [
-      point.timestamp * 1000,
-      point.avgLowPrice,
-    ]);
-    const buyVolumeSeries: [number, number][] = points.map((point) => [
-      point.timestamp * 1000,
-      point.highPriceVolume ?? 0,
-    ]);
-    const sellVolumeSeries: [number, number][] = points.map((point) => [
-      point.timestamp * 1000,
-      point.lowPriceVolume ?? 0,
-    ]);
-
+    const buySeries: [number, number | null][] = [];
+    const sellSeries: [number, number | null][] = [];
+    const buyVolumeSeries: [number, number][] = [];
+    const sellVolumeSeries: [number, number][] = [];
     let maxVolume = 0;
     for (const point of points) {
-      const totalVolume =
-        (point.highPriceVolume ?? 0) + (point.lowPriceVolume ?? 0);
+      const timestampMs = point.timestamp * 1000;
+      const buyVolume = point.highPriceVolume ?? 0;
+      const sellVolume = point.lowPriceVolume ?? 0;
+      buySeries.push([timestampMs, point.avgHighPrice]);
+      sellSeries.push([timestampMs, point.avgLowPrice]);
+      buyVolumeSeries.push([timestampMs, buyVolume]);
+      sellVolumeSeries.push([timestampMs, sellVolume]);
+      const totalVolume = buyVolume + sellVolume;
       if (totalVolume > maxVolume) {
         maxVolume = totalVolume;
       }
@@ -462,29 +454,38 @@ function computeStats(points: TimeseriesPoint[]): ChartStats {
   return { current, high, low, average, changePercent };
 }
 
+// Shape of echarts axis-tooltip callback entries; echarts types the formatter
+// parameter as unknown, so this is asserted once after the Array.isArray check.
+interface TooltipSeriesParameter {
+  axisValue: number;
+  dataIndex: number;
+  seriesName: string;
+  value: [number, number | null];
+}
+
 function tooltipFormatter(
   parameters: unknown,
   points: TimeseriesPoint[],
   dateFunction: (timestamp: number) => string,
 ): string {
-  if (!Array.isArray(parameters) || parameters.length === 0) {
+  if (!Array.isArray(parameters)) {
     return "";
   }
-  const first = parameters[0] as { axisValue: number; dataIndex: number };
+  const typedParameters = parameters as TooltipSeriesParameter[];
+  const first = typedParameters[0];
+  if (first === undefined) {
+    return "";
+  }
   const dateString = dateFunction(first.axisValue);
   const point = points[first.dataIndex];
 
   let buyValue: number | null = null;
   let sellValue: number | null = null;
-  for (const entry of parameters) {
-    const typedEntry = entry as {
-      seriesName: string;
-      value: [number, number | null];
-    };
-    if (typedEntry.seriesName === "Buy") {
-      buyValue = typedEntry.value[1];
-    } else if (typedEntry.seriesName === "Sell") {
-      sellValue = typedEntry.value[1];
+  for (const entry of typedParameters) {
+    if (entry.seriesName === "Buy") {
+      buyValue = entry.value[1];
+    } else if (entry.seriesName === "Sell") {
+      sellValue = entry.value[1];
     }
   }
 

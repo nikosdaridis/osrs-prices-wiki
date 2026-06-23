@@ -14,7 +14,7 @@ const COUNTDOWN_TICK_MS = 1_000;
 let mappingCache: MappingEntry[] | null = null;
 let refreshedAt: number | null = null;
 let nextRefreshAt: number | null = null;
-let isRefreshing: boolean = false;
+let activeRefreshCount = 0;
 
 async function loadMapping(): Promise<MappingEntry[]> {
   if (mappingCache !== null) {
@@ -25,7 +25,7 @@ async function loadMapping(): Promise<MappingEntry[]> {
 }
 
 export async function fetchSnapshot(): Promise<Item[]> {
-  isRefreshing = true;
+  activeRefreshCount += 1;
   try {
     const [mapping, latest, average24h] = await Promise.all([
       loadMapping(),
@@ -36,7 +36,7 @@ export async function fetchSnapshot(): Promise<Item[]> {
     nextRefreshAt = refreshedAt + POLL_INTERVAL_MS;
     return buildItems(mapping, latest.data, average24h.data);
   } finally {
-    isRefreshing = false;
+    activeRefreshCount -= 1;
   }
 }
 
@@ -142,16 +142,17 @@ export function startPolling(
 }
 
 export function startRefreshCountdown(elementId: string): () => void {
+  const element = document.getElementById(elementId);
+  if (element === null) {
+    return () => {};
+  }
+
   const update = () => {
-    const element = document.getElementById(elementId);
-    if (element === null) {
-      return;
-    }
     if (refreshedAt === null) {
       element.textContent = "…";
       return;
     }
-    if (isRefreshing || nextRefreshAt === null) {
+    if (activeRefreshCount > 0 || nextRefreshAt === null) {
       element.textContent = "Refreshing…";
       return;
     }

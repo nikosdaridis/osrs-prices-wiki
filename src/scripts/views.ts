@@ -7,6 +7,7 @@ import {
   type ViewState,
 } from "./grid";
 import { type RelativeTimeFilterModel } from "./filters/relative-time-filter";
+import { dispatchAppEvent } from "./events";
 
 export const VIEWS_STORAGE_KEY = "osrs-prices-views";
 const STORAGE_KEY = VIEWS_STORAGE_KEY;
@@ -136,37 +137,43 @@ function makeViewState(spec: ViewSpec): ViewState {
   };
 }
 
-export const PREDEFINED_VIEWS: PredefinedView[] = [
-  {
-    id: "high-volume",
-    name: "High Volume",
-    isPredefined: true,
-    state: makeViewState({
-      sortColId: "marginXVolume",
-      columns: HIGH_VOLUME_COLUMNS,
-      filters: {
-        ...RECENT_TRADE_FILTER_MODEL,
-        volume: {
-          filterType: "number",
-          type: "greaterThanOrEqual",
-          filter: 100_000,
-        },
+const HIGH_VOLUME_VIEW: PredefinedView = {
+  id: "high-volume",
+  name: "High Volume",
+  isPredefined: true,
+  state: makeViewState({
+    sortColId: "marginXVolume",
+    columns: HIGH_VOLUME_COLUMNS,
+    filters: {
+      ...RECENT_TRADE_FILTER_MODEL,
+      volume: {
+        filterType: "number",
+        type: "greaterThanOrEqual",
+        filter: 100_000,
       },
-    }),
-  },
-  {
-    id: "high-margin",
-    name: "High Margin",
-    isPredefined: true,
-    state: makeViewState({
-      sortColId: "margin",
-      columns: HIGH_MARGIN_COLUMNS,
-      filters: { ...RECENT_TRADE_FILTER_MODEL },
-    }),
-  },
+    },
+  }),
+};
+
+const HIGH_MARGIN_VIEW: PredefinedView = {
+  id: "high-margin",
+  name: "High Margin",
+  isPredefined: true,
+  state: makeViewState({
+    sortColId: "margin",
+    columns: HIGH_MARGIN_COLUMNS,
+    filters: { ...RECENT_TRADE_FILTER_MODEL },
+  }),
+};
+
+export const PREDEFINED_VIEWS: PredefinedView[] = [
+  HIGH_VOLUME_VIEW,
+  HIGH_MARGIN_VIEW,
 ];
 
-export const DEFAULT_VIEW_ID: string = PREDEFINED_VIEWS[0]!.id;
+const DEFAULT_VIEW: PredefinedView = HIGH_VOLUME_VIEW;
+
+export const DEFAULT_VIEW_ID: string = DEFAULT_VIEW.id;
 
 function emptyStored(): StoredState {
   return { activeViewId: DEFAULT_VIEW_ID, scratch: null, custom: [] };
@@ -206,16 +213,19 @@ function write(stored: StoredState): void {
   }
 }
 
-export function listViews(): View[] {
-  const stored = read();
+function viewsFor(stored: StoredState): View[] {
   return [...PREDEFINED_VIEWS, ...stored.custom];
+}
+
+export function listViews(): View[] {
+  return viewsFor(read());
 }
 
 export function getActiveView(): View {
   const stored = read();
-  const all = listViews();
   return (
-    all.find((view) => view.id === stored.activeViewId) ?? PREDEFINED_VIEWS[0]!
+    viewsFor(stored).find((view) => view.id === stored.activeViewId) ??
+    DEFAULT_VIEW
   );
 }
 
@@ -224,12 +234,12 @@ export function setActiveView(viewId: string): void {
   stored.activeViewId = viewId;
   stored.scratch = null;
   write(stored);
-  const view = listViews().find((candidateView) => candidateView.id === viewId);
+  const view = viewsFor(stored).find(
+    (candidateView) => candidateView.id === viewId,
+  );
   if (view !== undefined) {
     applyView(view.state);
-    window.dispatchEvent(
-      new CustomEvent("view:change", { detail: { viewId } }),
-    );
+    dispatchAppEvent("view:change", { viewId });
   }
 }
 
@@ -245,9 +255,7 @@ export function saveCurrentAsView(name: string): CustomView {
   stored.activeViewId = view.id;
   stored.scratch = null;
   write(stored);
-  window.dispatchEvent(
-    new CustomEvent("view:change", { detail: { viewId: view.id } }),
-  );
+  dispatchAppEvent("view:change", { viewId: view.id });
   return view;
 }
 
@@ -260,18 +268,16 @@ export function deleteCustomView(viewId: string): void {
   }
   write(stored);
   if (stored.activeViewId === DEFAULT_VIEW_ID) {
-    applyView(PREDEFINED_VIEWS[0]!.state);
+    applyView(DEFAULT_VIEW.state);
   }
-  window.dispatchEvent(
-    new CustomEvent("view:change", { detail: { viewId: stored.activeViewId } }),
-  );
+  dispatchAppEvent("view:change", { viewId: stored.activeViewId });
 }
 
 export function initViews(): void {
   const stored = read();
-  const all = listViews();
   const active =
-    all.find((view) => view.id === stored.activeViewId) ?? PREDEFINED_VIEWS[0]!;
+    viewsFor(stored).find((view) => view.id === stored.activeViewId) ??
+    DEFAULT_VIEW;
 
   applyView(stored.scratch ?? active.state);
 
@@ -281,7 +287,5 @@ export function initViews(): void {
     write(current);
   });
 
-  window.dispatchEvent(
-    new CustomEvent("view:change", { detail: { viewId: active.id } }),
-  );
+  dispatchAppEvent("view:change", { viewId: active.id });
 }

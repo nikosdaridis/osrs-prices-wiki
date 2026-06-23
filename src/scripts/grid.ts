@@ -1,6 +1,21 @@
 import {
-  AllCommunityModule,
+  CellStyleModule,
+  ClientSideRowModelModule,
+  ColumnApiModule,
+  ColumnAutoSizeModule,
+  CustomFilterModule,
+  ExternalFilterModule,
+  LocaleModule,
   ModuleRegistry,
+  NumberFilterModule,
+  PaginationModule,
+  QuickFilterModule,
+  RenderApiModule,
+  RowApiModule,
+  RowSelectionModule,
+  TextFilterModule,
+  TooltipModule,
+  ValidationModule,
   colorSchemeDarkBlue,
   createGrid,
   themeQuartz,
@@ -29,6 +44,7 @@ import {
   tradeTimeColorVar,
   type ValueKind,
 } from "./format";
+import { dispatchAppEvent } from "./events";
 import { escapeHtml } from "./html";
 import { isNullish } from "./nullish";
 import {
@@ -41,7 +57,7 @@ import {
   COLOR_ROW_BORDER,
   COLOR_ROW_HOVER,
 } from "./theme";
-import { readSearchScope, type SearchScope } from "./search-scope";
+import { readSearchScope } from "./search-scope";
 import type { Item } from "./types";
 import { isWatched, toggleWatch } from "./watchlist";
 import { parseAbbreviatedNumber } from "./parse-number";
@@ -49,7 +65,24 @@ import { RelativeTimeFilter } from "./filters/relative-time-filter";
 import { MembersFilter } from "./filters/members-filter";
 import { decorateFilterInputs } from "./filters/clear-button";
 
-ModuleRegistry.registerModules([AllCommunityModule]);
+ModuleRegistry.registerModules([
+  CellStyleModule,
+  ClientSideRowModelModule,
+  ColumnApiModule,
+  ColumnAutoSizeModule,
+  CustomFilterModule,
+  ExternalFilterModule,
+  LocaleModule,
+  NumberFilterModule,
+  PaginationModule,
+  QuickFilterModule,
+  RenderApiModule,
+  RowApiModule,
+  RowSelectionModule,
+  TextFilterModule,
+  TooltipModule,
+  ...(import.meta.env.DEV ? [ValidationModule] : []),
+]);
 
 const GRID_THEME = themeQuartz.withPart(colorSchemeDarkBlue).withParams({
   backgroundColor: COLOR_BG,
@@ -79,18 +112,22 @@ const CONTENT_PADDING_PX = 12 * 2;
 const HEADER_ICON_RESERVE_PX = 44;
 const MONO_ADVANCE_RATIO = 0.6;
 
+let measurementContext: CanvasRenderingContext2D | null = null;
+
 function monospaceCharacterWidth(fontPx: number): number {
   if (typeof document === "undefined") {
     return fontPx * MONO_ADVANCE_RATIO;
   }
-  const context = document.createElement("canvas").getContext("2d");
+  measurementContext ??= document.createElement("canvas").getContext("2d");
   const root = document.body ?? document.documentElement;
-  if (context === null || root === null) {
+  if (measurementContext === null || root === null) {
     return fontPx * MONO_ADVANCE_RATIO;
   }
   const fontFamily = getComputedStyle(root).fontFamily || "monospace";
-  context.font = `${fontPx}px ${fontFamily}`;
-  return context.measureText("0").width || fontPx * MONO_ADVANCE_RATIO;
+  measurementContext.font = `${fontPx}px ${fontFamily}`;
+  return (
+    measurementContext.measureText("0").width || fontPx * MONO_ADVANCE_RATIO
+  );
 }
 
 const CELL_CHARACTER_PX = monospaceCharacterWidth(CELL_FONT_PX);
@@ -164,34 +201,16 @@ function notifyStateChange(): void {
   }, STATE_CHANGE_DEBOUNCE_MS);
 }
 
-export interface PaginationChangeDetail {
-  currentPage: number;
-  totalPages: number;
-  rowCount: number;
-  pageSize: number;
-}
-
-export interface SearchResultDetail {
-  scope: "view" | "all";
-  query: string;
-  rowCount: number;
-  total: number;
-}
-
 function dispatchSearchResult(): void {
   if (state === null) {
     return;
   }
-  window.dispatchEvent(
-    new CustomEvent<SearchResultDetail>("search:result", {
-      detail: {
-        scope: state.searchAll ? "all" : "view",
-        query: state.search,
-        rowCount: state.api.paginationGetRowCount(),
-        total: totalItemCount,
-      },
-    }),
-  );
+  dispatchAppEvent("search:result", {
+    scope: state.searchAll ? "all" : "view",
+    query: state.search,
+    rowCount: state.api.paginationGetRowCount(),
+    total: totalItemCount,
+  });
 }
 
 function dispatchPaginationChange(): void {
@@ -199,16 +218,12 @@ function dispatchPaginationChange(): void {
     return;
   }
   const api = state.api;
-  window.dispatchEvent(
-    new CustomEvent<PaginationChangeDetail>("pagination:change", {
-      detail: {
-        currentPage: api.paginationGetCurrentPage(),
-        totalPages: api.paginationGetTotalPages(),
-        rowCount: api.paginationGetRowCount(),
-        pageSize: api.paginationGetPageSize(),
-      },
-    }),
-  );
+  dispatchAppEvent("pagination:change", {
+    currentPage: api.paginationGetCurrentPage(),
+    totalPages: api.paginationGetTotalPages(),
+    rowCount: api.paginationGetRowCount(),
+    pageSize: api.paginationGetPageSize(),
+  });
 }
 
 function numberRenderer(kind: ValueKind, formatter: (value: number) => string) {
@@ -267,7 +282,7 @@ function itemCellRenderer(parameters: ICellRendererParams<Item>): string {
             <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
         </svg>
     </button>
-    <img src="${item.iconUrl}" alt="" width="22" height="22" loading="lazy" decoding="async" class="shrink-0 object-contain" onerror="this.style.opacity='0.15'">
+    <img src="${item.iconUrl}" alt="" width="22" height="22" loading="lazy" decoding="async" class="shrink-0 object-contain" data-icon-fallback="0.15">
     <div class="flex min-w-0 flex-col leading-tight">
         <span class="truncate" style="color:var(--color-fg)">${safeName}</span>
         <span style="color:var(--color-muted-foreground); font-size:12px">#${item.id}</span>
@@ -284,7 +299,7 @@ function membersCellRenderer(
   }
   const icon = value ? MEMBER_ICON : FREE_TO_PLAY_ICON;
   const title = value ? "Members" : "Free-to-play";
-  return `<span class="flex h-full w-full items-center justify-center"><img src="${iconUrl(icon)}" alt="${title}" title="${title}" width="16" height="16" loading="lazy" decoding="async" class="object-contain" onerror="this.style.opacity='0.15'"></span>`;
+  return `<span class="flex h-full w-full items-center justify-center"><img src="${iconUrl(icon)}" alt="${title}" title="${title}" width="16" height="16" loading="lazy" decoding="async" class="object-contain" data-icon-fallback="0.15"></span>`;
 }
 
 const NUMBER_FILTER = "agNumberColumnFilter";
@@ -681,9 +696,7 @@ export function initGrid(container: HTMLElement): GridApi<Item> {
         }
         return;
       }
-      window.dispatchEvent(
-        new CustomEvent("detail:open", { detail: { itemId: event.data.id } }),
-      );
+      dispatchAppEvent("detail:open", { itemId: event.data.id });
     },
     onFilterOpened: (event) => {
       filterInputObserver?.disconnect();
@@ -714,11 +727,10 @@ export function initGrid(container: HTMLElement): GridApi<Item> {
   };
 
   window.addEventListener("search:change", (event) => {
-    const detail = (event as CustomEvent<{ value: string }>).detail;
-    if (detail === undefined || state === null) {
+    if (state === null) {
       return;
     }
-    state.search = detail.value.trim();
+    state.search = event.detail.value.trim();
     api.setGridOption("quickFilterText", state.search);
     applyScope();
     api.refreshCells({ force: true, columns: ["name"] });
@@ -726,12 +738,11 @@ export function initGrid(container: HTMLElement): GridApi<Item> {
   });
 
   window.addEventListener("search-scope:change", (event) => {
-    const detail = (event as CustomEvent<{ scope: SearchScope }>).detail;
-    if (detail === undefined || state === null) {
+    if (state === null) {
       return;
     }
-    state.searchAll = detail.scope === "all";
-    state.watchOnly = detail.scope === "watchlist";
+    state.searchAll = event.detail.scope === "all";
+    state.watchOnly = event.detail.scope === "watchlist";
     applyScope();
     api.onFilterChanged();
     api.refreshCells({ force: true, columns: ["name"] });
@@ -739,11 +750,7 @@ export function initGrid(container: HTMLElement): GridApi<Item> {
   });
 
   window.addEventListener("page-size:change", (event) => {
-    const detail = (event as CustomEvent<{ size: number }>).detail;
-    if (detail === undefined) {
-      return;
-    }
-    api.setGridOption("paginationPageSize", detail.size);
+    api.setGridOption("paginationPageSize", event.detail.size);
     notifyStateChange();
   });
 
