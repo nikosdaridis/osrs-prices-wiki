@@ -24,7 +24,7 @@
     "sortablejs": "^1.15.7"
   },
   "devDependencies": {
-    "@astrojs/check": "^0.9.9",
+    "@astrojs/check": "^0.9.10",
     "@tailwindcss/vite": "^4.3.3",
     "@types/sortablejs": "^1.15.9",
     "prettier": "^3.9.6",
