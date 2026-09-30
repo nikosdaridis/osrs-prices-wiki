@@ -23,7 +23,9 @@ const predefinedColumnCountMap: Record<string, number> = Object.fromEntries(
     title="Show or hide columns"
   >
     <span class="text-muted">Columns</span>
-    <span id="columns-count" class="text-fg tabular-nums">—</span>
+    <span id="columns-count" class="text-fg tabular-nums">
+      —
+    </span>
     <svg
       viewBox="0 0 24 24"
       width="11"
@@ -45,9 +47,7 @@ const predefinedColumnCountMap: Record<string, number> = Object.fromEntries(
     class="absolute top-full right-0 z-30 mt-1 hidden w-60 max-w-[calc(100vw-2rem)] overflow-hidden rounded border border-border bg-surface-elevated shadow-lg"
     role="menu"
   >
-    <div
-      class="px-2 pt-1.5 text-[14px] tracking-wider text-muted-foreground uppercase"
-    >
+    <div class="px-2 pt-1.5 text-[14px] tracking-wider text-muted-foreground uppercase">
       Manage columns
     </div>
     <div class="px-2 py-1.5">
@@ -84,9 +84,7 @@ const predefinedColumnCountMap: Record<string, number> = Object.fromEntries(
         </button>
       </label>
     </div>
-    <div
-      class="flex items-center gap-1 border-b border-border px-2 pb-1.5 text-[12px]"
-    >
+    <div class="flex items-center gap-1 border-b border-border px-2 pb-1.5 text-[12px]">
       <button
         id="columns-show-all"
         type="button"
@@ -113,8 +111,7 @@ const predefinedColumnCountMap: Record<string, number> = Object.fromEntries(
     <ul
       id="columns-list"
       class="flex max-h-[60vh] flex-col overflow-y-auto py-1"
-    >
-    </ul>
+    ></ul>
   </div>
 </div>
 

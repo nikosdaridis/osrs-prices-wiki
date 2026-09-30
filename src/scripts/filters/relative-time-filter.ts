@@ -8,11 +8,7 @@ import { ThemedSelect, type ThemedSelectOption } from "./themed-select";
 
 export type RelativeTimeDirection = "within" | "older";
 export type RelativeTimeUnit =
-  | "seconds"
-  | "minutes"
-  | "hours"
-  | "days"
-  | "months";
+  "seconds" | "minutes" | "hours" | "days" | "months";
 
 export interface RelativeTimeFilterModel {
   direction: RelativeTimeDirection;

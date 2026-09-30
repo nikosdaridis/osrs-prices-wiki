@@ -19,27 +19,27 @@ const predefinedItems = PREDEFINED_VIEWS.map((view) => ({
 >
   <slot />
 
-  {
-    predefinedItems.map((view) => (
-      <button
-        type="button"
-        role="tab"
-        data-view-id={view.id}
-        aria-selected={view.id === DEFAULT_VIEW_ID}
-        class:list={[
-          "view-chip",
-          "h-8 shrink-0 rounded px-2.5 text-[14px] transition-colors",
-          "border border-border bg-surface text-fg hover:border-accent hover:text-accent",
-          "aria-selected:border-accent aria-selected:bg-accent aria-selected:text-bg aria-selected:hover:text-bg",
-        ]}
-      >
-        {view.name}
-      </button>
-    ))
-  }
+  {predefinedItems.map((view) => (
+    <button
+      type="button"
+      role="tab"
+      data-view-id={view.id}
+      aria-selected={view.id === DEFAULT_VIEW_ID}
+      class:list={[
+        "view-chip",
+        "h-8 shrink-0 rounded px-2.5 text-[14px] transition-colors",
+        "border border-border bg-surface text-fg hover:border-accent hover:text-accent",
+        "aria-selected:border-accent aria-selected:bg-accent aria-selected:text-bg aria-selected:hover:text-bg",
+      ]}
+    >
+      {view.name}
+    </button>
+  ))}
 
-  <div id="view-custom-separator" class="hidden h-5 w-px shrink-0 bg-border">
-  </div>
+  <div
+    id="view-custom-separator"
+    class="hidden h-5 w-px shrink-0 bg-border"
+  ></div>
 
   <div id="view-custom-list" class="flex flex-wrap items-center gap-1"></div>
 
