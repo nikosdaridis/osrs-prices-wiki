@@ -78,6 +78,7 @@ export interface Item {
   volume: number;
 
   tax: number;
+  conversionFee: number;
   margin: number | null;
   roi: number | null;
 

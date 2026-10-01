@@ -12,6 +12,7 @@ import {
   MEMBER_ICON,
   tradeTimeColorVar,
 } from "./format";
+import { BOND_CONVERSION_FEE_PERCENT } from "./tax";
 import { isTimestep, type Item, type Timestep } from "./types";
 import { isWatched, toggleWatch } from "./watchlist";
 
@@ -174,6 +175,7 @@ function renderMetrics(item: Item): void {
       ? `-${formatShort(item.tax)} (${taxPercent.toFixed(2)}%)`
       : formatShort(item.tax);
   setMetric("m-tax", taxDisplay, colorVarFor(item.tax, "tax"));
+  setConversionFeeNote(item.conversionFee);
   setMetric("m-roi", formatPercent(item.roi), colorVarFor(item.roi, "roi"));
   setMetric(
     "m-potential",
@@ -268,4 +270,13 @@ function setMetric(id: string, value: string, color: string): void {
   }
   element.textContent = value;
   element.style.color = color;
+}
+
+function setConversionFeeNote(conversionFee: number): void {
+  const note = getCachedElementById("m-tax-note");
+  if (note === null) {
+    return;
+  }
+  note.textContent = `${BOND_CONVERSION_FEE_PERCENT}% convert fee in margin`;
+  note.hidden = conversionFee === 0;
 }

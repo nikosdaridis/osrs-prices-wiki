@@ -4,9 +4,10 @@ interface Props {
   label: string;
   title?: string;
   emphasis?: boolean;
+  noteId?: string;
 }
 
-const { id, label, title, emphasis = false } = Astro.props;
+const { id, label, title, emphasis = false, noteId } = Astro.props;
 ---
 
 <div
@@ -46,4 +47,7 @@ const { id, label, title, emphasis = false } = Astro.props;
   >
     —
   </span>
+  {noteId !== undefined && (
+    <span id={noteId} class="text-[11px] text-muted-foreground" hidden />
+  )}
 </div>

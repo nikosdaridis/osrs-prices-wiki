@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
   buildItemSlug,
-  calculateTax,
   colorClassFor,
   colorVarFor,
   formatClock,
@@ -143,17 +142,6 @@ describe("tradeTimeColorVar", () => {
     expect(tradeTimeColorVar(NOW_SECONDS - 86_400, NOW_MS)).toBe(
       "var(--color-muted)",
     );
-  });
-});
-
-describe("calculateTax", () => {
-  it("applies the 2% GE fee with a floor and a cap", () => {
-    expect(calculateTax(null)).toBe(0);
-    expect(calculateTax(49)).toBe(0);
-    expect(calculateTax(50)).toBe(1);
-    expect(calculateTax(100)).toBe(2);
-    expect(calculateTax(1_000_000)).toBe(20_000);
-    expect(calculateTax(500_000_000)).toBe(5_000_000);
   });
 });
 

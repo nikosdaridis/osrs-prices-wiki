@@ -120,17 +120,6 @@ export function iconUrl(icon: string): string {
   return `${ICONS_BASE}/${encodeURIComponent(icon.replace(/ /g, "_"))}`;
 }
 
-const TAX_DIVISOR = 50;
-const TAX_CAP = 5_000_000;
-const TAX_MIN_PRICE = 50;
-
-export function calculateTax(buyPrice: number | null | undefined): number {
-  if (isNullish(buyPrice) || buyPrice < TAX_MIN_PRICE) {
-    return 0;
-  }
-  return Math.min(Math.floor(buyPrice / TAX_DIVISOR), TAX_CAP);
-}
-
 export type ValueKind =
   | "buy"
   | "sell"

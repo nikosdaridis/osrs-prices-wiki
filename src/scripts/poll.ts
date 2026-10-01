@@ -1,6 +1,7 @@
 import { fetch24h, fetchLatest, fetchMapping } from "./api";
-import { buildItemSlug, calculateTax, iconUrl } from "./format";
+import { buildItemSlug, iconUrl } from "./format";
 import { isPresent } from "./nullish";
+import { calculateConversionFee, calculateTax } from "./tax";
 import type {
   AveragePriceEntry,
   Item,
@@ -47,8 +48,10 @@ export function deriveItem(
 ): Item {
   const buy = latest?.high ?? null;
   const sell = latest?.low ?? null;
-  const tax = calculateTax(buy);
-  const margin = isPresent(buy) && isPresent(sell) ? buy - sell - tax : null;
+  const tax = calculateTax(buy, entry.id);
+  const conversionFee = calculateConversionFee(buy, entry.id);
+  const margin =
+    isPresent(buy) && isPresent(sell) ? buy - sell - tax - conversionFee : null;
   const roi =
     isPresent(margin) && isPresent(sell) && sell > 0
       ? (margin / sell) * 100
@@ -88,6 +91,7 @@ export function deriveItem(
     sellTime,
     volume,
     tax,
+    conversionFee,
     margin,
     roi,
     marginXLimit,

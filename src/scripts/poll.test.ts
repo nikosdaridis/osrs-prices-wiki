@@ -66,6 +66,55 @@ describe("deriveItem", () => {
     expect(item.buyTime).toBeNull();
   });
 
+  it("charges no tax on a tax-exempt item", () => {
+    const lobsterEntry: MappingEntry = {
+      id: 379,
+      name: "Lobster",
+      examine: "This looks tricky to eat.",
+      icon: "Lobster.png",
+      members: false,
+      limit: 13_000,
+    };
+    const latest: LatestEntry = {
+      high: 114,
+      highTime: 1,
+      low: 108,
+      lowTime: 1,
+    };
+
+    const item = deriveItem(lobsterEntry, latest, undefined);
+
+    expect(item.tax).toBe(0);
+    expect(item.conversionFee).toBe(0);
+    expect(item.margin).toBe(6);
+    expect(item.marginXLimit).toBe(78_000);
+  });
+
+  it("takes the bond's conversion fee instead of tax from its margin", () => {
+    const bondEntry: MappingEntry = {
+      id: 13190,
+      name: "Old school bond",
+      examine: "This bond can be redeemed for membership.",
+      icon: "Old school bond.png",
+      members: false,
+      limit: 100,
+    };
+    const latest: LatestEntry = {
+      high: 11_338_228,
+      highTime: 1,
+      low: 11_133_164,
+      lowTime: 1,
+    };
+
+    const item = deriveItem(bondEntry, latest, undefined);
+
+    expect(item.tax).toBe(0);
+    expect(item.conversionFee).toBe(1_133_823);
+    expect(item.margin).toBe(-928_759);
+    expect(item.roi).toBeCloseTo(-8.342_1, 3);
+    expect(item.marginXLimit).toBe(-92_875_900);
+  });
+
   it("guards ROI against a zero sell price", () => {
     const latest: LatestEntry = {
       high: 100,
