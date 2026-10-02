@@ -1,6 +1,19 @@
-import { describe, expect, it } from "vitest";
-import { deriveItem } from "./poll";
-import type { AveragePriceEntry, LatestEntry, MappingEntry } from "./types";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { fetch24h, fetchLatest, fetchMapping } from "./api";
+import { deriveItem, POLL_INTERVAL_MS, startPolling } from "./poll";
+import type {
+  AveragePriceEntry,
+  AveragePriceResponse,
+  LatestEntry,
+  LatestResponse,
+  MappingEntry,
+} from "./types";
+
+vi.mock("./api", () => ({
+  fetchMapping: vi.fn(),
+  fetchLatest: vi.fn(),
+  fetch24h: vi.fn(),
+}));
 
 const baseEntry: MappingEntry = {
   id: 4151,
@@ -142,5 +155,47 @@ describe("deriveItem", () => {
 
     expect(item.limit).toBe(0);
     expect(item.marginXLimit).toBeNull();
+  });
+});
+
+describe("startPolling", () => {
+  const latestResponse: LatestResponse = {
+    data: {
+      "4151": { high: 2_000_000, highTime: 1, low: 1_900_000, lowTime: 1 },
+    },
+  };
+  const averageResponse: AveragePriceResponse = { timestamp: 1, data: {} };
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.mocked(fetchMapping).mockResolvedValue([baseEntry]);
+    vi.mocked(fetchLatest).mockResolvedValue(latestResponse);
+    vi.mocked(fetch24h).mockResolvedValue(averageResponse);
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.clearAllMocks();
+  });
+
+  it("waits a full interval before the first refresh", async () => {
+    const onUpdate = vi.fn();
+    const onError = vi.fn();
+    const stop = startPolling(onUpdate, onError);
+
+    await vi.advanceTimersByTimeAsync(POLL_INTERVAL_MS - 1);
+    expect(fetchLatest).not.toHaveBeenCalled();
+    expect(fetch24h).not.toHaveBeenCalled();
+
+    await vi.advanceTimersByTimeAsync(1);
+    expect(fetchLatest).toHaveBeenCalledTimes(1);
+    expect(fetch24h).toHaveBeenCalledTimes(1);
+    expect(onUpdate).toHaveBeenCalledTimes(1);
+    expect(onUpdate.mock.calls[0]?.[0]).toMatchObject([
+      { id: 4151, buy: 2_000_000 },
+    ]);
+    expect(onError).not.toHaveBeenCalled();
+
+    stop();
   });
 });

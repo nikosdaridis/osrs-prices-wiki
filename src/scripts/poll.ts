@@ -9,7 +9,7 @@ import type {
   MappingEntry,
 } from "./types";
 
-const POLL_INTERVAL_MS = 60_000;
+export const POLL_INTERVAL_MS = 60_000;
 const COUNTDOWN_TICK_MS = 1_000;
 
 let mappingCache: MappingEntry[] | null = null;
@@ -136,7 +136,6 @@ export function startPolling(
     }
   };
 
-  void pollTick();
   const timer = setInterval(() => void pollTick(), POLL_INTERVAL_MS);
 
   return () => {
