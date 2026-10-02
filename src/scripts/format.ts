@@ -6,12 +6,10 @@ export const MAX_GE_PRICE = 2_147_483_647;
 export const MEMBER_ICON = "Member icon.png";
 export const FREE_TO_PLAY_ICON = "Free-to-play icon.png";
 
-// Thousands stay at one decimal; millions and billions carry a second decimal
-// so large prices read precisely (e.g. 1.62M, 1.62B). Trailing zeros are still
-// trimmed by trimDecimal, so exact values render as 1.6M / 1.6B.
 const THOUSANDS_FRACTION_DIGITS = 1;
 const MILLIONS_FRACTION_DIGITS = 2;
 const BILLIONS_FRACTION_DIGITS = 2;
+const NEXT_UNIT_THRESHOLD = 1000;
 
 export function formatShort(value: number | null | undefined): string {
   if (isNullish(value) || !Number.isFinite(value)) {
@@ -22,13 +20,22 @@ export function formatShort(value: number | null | undefined): string {
   const abs = Math.abs(value);
 
   if (abs < 1000) {
-    return `${sign}${Math.round(abs)}`;
+    const rounded = Math.round(abs);
+    if (rounded < NEXT_UNIT_THRESHOLD) {
+      return `${sign}${rounded}`;
+    }
   }
   if (abs < 1_000_000) {
-    return `${sign}${trimDecimal((abs / 1000).toFixed(THOUSANDS_FRACTION_DIGITS))}K`;
+    const thousands = (abs / 1000).toFixed(THOUSANDS_FRACTION_DIGITS);
+    if (Number(thousands) < NEXT_UNIT_THRESHOLD) {
+      return `${sign}${trimDecimal(thousands)}K`;
+    }
   }
   if (abs < 1_000_000_000) {
-    return `${sign}${trimDecimal((abs / 1_000_000).toFixed(MILLIONS_FRACTION_DIGITS))}M`;
+    const millions = (abs / 1_000_000).toFixed(MILLIONS_FRACTION_DIGITS);
+    if (Number(millions) < NEXT_UNIT_THRESHOLD) {
+      return `${sign}${trimDecimal(millions)}M`;
+    }
   }
   return `${sign}${trimDecimal((abs / 1_000_000_000).toFixed(BILLIONS_FRACTION_DIGITS))}B`;
 }

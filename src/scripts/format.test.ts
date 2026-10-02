@@ -48,6 +48,23 @@ describe("formatShort", () => {
     expect(formatShort(-1500)).toBe("-1.5K");
     expect(formatShort(-1_623_456_789)).toBe("-1.62B");
   });
+
+  it("moves values that round up to 1000 into the next unit", () => {
+    expect(formatShort(999.4)).toBe("999");
+    expect(formatShort(999.5)).toBe("1K");
+    expect(formatShort(999_949)).toBe("999.9K");
+    expect(formatShort(999_950)).toBe("1M");
+    expect(formatShort(999_999)).toBe("1M");
+    expect(formatShort(999_994_999)).toBe("999.99M");
+    expect(formatShort(999_995_000)).toBe("1B");
+    expect(formatShort(999_999_999)).toBe("1B");
+  });
+
+  it("moves negatives into the next unit the same way", () => {
+    expect(formatShort(-999.5)).toBe("-1K");
+    expect(formatShort(-999_950)).toBe("-1M");
+    expect(formatShort(-999_995_000)).toBe("-1B");
+  });
 });
 
 describe("formatSigned", () => {
