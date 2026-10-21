@@ -11,15 +11,10 @@ const PRICES_BASE = "https://prices.runescape.wiki/api/v1/osrs";
 
 const REQUEST_TIMEOUT_MS = 15_000;
 
-const HEADERS: HeadersInit = {
-  "x-application": "osrsprices.wiki",
-};
-
 async function getJson<T>(url: string): Promise<T> {
   let response: Response;
   try {
     response = await fetch(url, {
-      headers: HEADERS,
       signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
     });
   } catch (error) {
