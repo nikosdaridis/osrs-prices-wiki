@@ -145,11 +145,12 @@ export async function renderChart(
     window.addEventListener("resize", resizeHandler);
   }
 
+  const chart = chartInstance;
   const renderId = ++latestRenderId;
   const silent = options.silent === true;
 
   if (!silent) {
-    chartInstance.showLoading({
+    chart.showLoading({
       text: "",
       color: COLOR_ACCENT,
       textColor: COLOR_FG,
@@ -167,7 +168,7 @@ export async function renderChart(
 
   try {
     const response = await fetchTimeseries(itemId, timestep);
-    if (renderId !== latestRenderId) {
+    if (!isCurrentRender(chart, renderId)) {
       return null;
     }
     const points = response.data;
@@ -229,7 +230,7 @@ export async function renderChart(
       },
     ];
 
-    chartInstance.setOption(
+    chart.setOption(
       {
         grid: {
           left: 4,
@@ -403,10 +404,16 @@ export async function renderChart(
         : { notMerge: true },
     );
   } finally {
-    chartInstance.hideLoading();
+    if (isCurrentRender(chart, renderId)) {
+      chart.hideLoading();
+    }
   }
 
   return stats;
+}
+
+function isCurrentRender(chart: echarts.ECharts, renderId: number): boolean {
+  return chart === chartInstance && renderId === latestRenderId;
 }
 
 function computeStats(points: TimeseriesPoint[]): ChartStats {
