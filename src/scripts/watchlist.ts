@@ -35,7 +35,11 @@ function write(ids: Set<number>): void {
   if (typeof window === "undefined") {
     return;
   }
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify([...ids]));
+  try {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify([...ids]));
+  } catch (error) {
+    console.warn("watchlist: localStorage write failed", error);
+  }
 }
 
 if (typeof window !== "undefined") {
