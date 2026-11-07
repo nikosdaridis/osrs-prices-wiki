@@ -660,6 +660,7 @@ const OPTIONS: GridOptions<Item> = {
     enableClickSelection: true,
   },
   suppressCellFocus: true,
+  suppressInputClearButton: true,
   animateRows: false,
   getRowId: (parameters) => String(parameters.data.id),
 };
