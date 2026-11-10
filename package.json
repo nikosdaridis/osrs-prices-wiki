@@ -25,7 +25,7 @@
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.12",
-    "@tailwindcss/vite": "^4.3.4",
+    "@tailwindcss/vite": "^4.3.5",
     "@types/sortablejs": "^1.15.9",
     "prettier": "^3.9.10",
     "prettier-plugin-astro": "^1.1.2",
