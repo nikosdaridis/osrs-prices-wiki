@@ -111,39 +111,72 @@ const HEADER_FONT_PX = 13;
 const CONTENT_PADDING_PX = 12 * 2;
 const HEADER_ICON_RESERVE_PX = 44;
 const MONO_ADVANCE_RATIO = 0.6;
+const SHORTEST_HEADER = "ROI";
+export const FONT_LOAD_TIMEOUT_MS = 3_000;
 
 let measurementContext: CanvasRenderingContext2D | null = null;
 
-function monospaceCharacterWidth(fontPx: number): number {
-  if (typeof document === "undefined") {
-    return fontPx * MONO_ADVANCE_RATIO;
-  }
-  measurementContext ??= document.createElement("canvas").getContext("2d");
+interface CharacterWidths {
+  cellPx: number;
+  headerPx: number;
+}
+
+function gridFont(fontPx: number): string {
   const root = document.body ?? document.documentElement;
-  if (measurementContext === null || root === null) {
+  const fontFamily = getComputedStyle(root).fontFamily || "monospace";
+  return `${fontPx}px ${fontFamily}`;
+}
+
+async function waitForGridFont(): Promise<void> {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<void>((resolve) => {
+    timeoutId = setTimeout(resolve, FONT_LOAD_TIMEOUT_MS);
+  });
+  const fontsLoaded = Promise.all(
+    [CELL_FONT_PX, HEADER_FONT_PX].map((fontPx) =>
+      document.fonts.load(gridFont(fontPx)),
+    ),
+  );
+  try {
+    await Promise.race([fontsLoaded, timeout]);
+  } catch (error: unknown) {
+    console.warn("grid: web font failed to load", error);
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
+function monospaceCharacterWidth(fontPx: number): number {
+  measurementContext ??= document.createElement("canvas").getContext("2d");
+  if (measurementContext === null) {
     return fontPx * MONO_ADVANCE_RATIO;
   }
-  const fontFamily = getComputedStyle(root).fontFamily || "monospace";
-  measurementContext.font = `${fontPx}px ${fontFamily}`;
+  measurementContext.font = gridFont(fontPx);
   return (
     measurementContext.measureText("0").width || fontPx * MONO_ADVANCE_RATIO
   );
 }
 
-const CELL_CHARACTER_PX = monospaceCharacterWidth(CELL_FONT_PX);
-const HEADER_CHARACTER_PX = monospaceCharacterWidth(HEADER_FONT_PX);
+function measureCharacterWidths(): CharacterWidths {
+  return {
+    cellPx: monospaceCharacterWidth(CELL_FONT_PX),
+    headerPx: monospaceCharacterWidth(HEADER_FONT_PX),
+  };
+}
 
-function fitColumnWidth(headerName: string, widestValue: string): number {
+function fitColumnWidth(
+  characterWidths: CharacterWidths,
+  headerName: string,
+  widestValue: string,
+): number {
   const valueWidth =
-    Math.ceil(widestValue.length * CELL_CHARACTER_PX) + CONTENT_PADDING_PX;
+    Math.ceil(widestValue.length * characterWidths.cellPx) + CONTENT_PADDING_PX;
   const headerWidth =
-    Math.ceil(headerName.length * HEADER_CHARACTER_PX) +
+    Math.ceil(headerName.length * characterWidths.headerPx) +
     CONTENT_PADDING_PX +
     HEADER_ICON_RESERVE_PX;
   return Math.max(valueWidth, headerWidth);
 }
-
-const DEFAULT_MIN_COLUMN_WIDTH = fitColumnWidth("ROI", "");
 
 const WIDEST_INT = formatInt(MAX_GE_PRICE);
 const WIDEST_SHORT = "-999.99M";
@@ -154,14 +187,17 @@ const WIDEST_LIMIT = "100,000";
 type ItemColDef = ColDef<Item> & { colId: string };
 type RawColDef = ItemColDef & { widestValue?: string };
 
-function withFitWidth(definition: RawColDef): ItemColDef {
+function withFitWidth(
+  definition: RawColDef,
+  characterWidths: CharacterWidths,
+): ItemColDef {
   if (definition.colId === "name") {
     return definition;
   }
   const { widestValue, ...rest } = definition;
   const headerName =
     typeof definition.headerName === "string" ? definition.headerName : "";
-  const width = fitColumnWidth(headerName, widestValue ?? "");
+  const width = fitColumnWidth(characterWidths, headerName, widestValue ?? "");
   return { ...rest, width, minWidth: width };
 }
 
@@ -542,9 +578,7 @@ function withSharedFilterParams(definition: RawColDef): RawColDef {
   return definition;
 }
 
-const COLUMN_DEFS: ItemColDef[] = RAW_COLUMN_DEFS.map(
-  withSharedFilterParams,
-).map(withFitWidth);
+const COLUMN_DEFS: RawColDef[] = RAW_COLUMN_DEFS.map(withSharedFilterParams);
 
 const AUTO_SIZE_COLUMN_IDS: string[] = COLUMN_DEFS.map(
   (definition) => definition.colId,
@@ -559,7 +593,6 @@ export function getDefaultColumnState(): ColumnState[] {
     return {
       colId: definition.colId,
       hide: definition.hide === true,
-      width: definition.width,
       flex: definition.flex,
       pinned: definition.pinned ?? null,
       sort,
@@ -636,7 +669,6 @@ const FALLBACK_PAGE_SIZE = 25;
 
 const OPTIONS: GridOptions<Item> = {
   theme: GRID_THEME,
-  columnDefs: COLUMN_DEFS,
   rowData: [],
   localeText: {
     noMatchingRows: "No matching items",
@@ -647,7 +679,6 @@ const OPTIONS: GridOptions<Item> = {
   paginationPageSizeSelector: false,
   suppressPaginationPanel: true,
   defaultColDef: {
-    minWidth: DEFAULT_MIN_COLUMN_WIDTH,
     resizable: true,
     sortable: true,
     suppressHeaderMenuButton: false,
@@ -665,9 +696,18 @@ const OPTIONS: GridOptions<Item> = {
   getRowId: (parameters) => String(parameters.data.id),
 };
 
-export function initGrid(container: HTMLElement): GridApi<Item> {
+export async function initGrid(container: HTMLElement): Promise<GridApi<Item>> {
+  await waitForGridFont();
+  const characterWidths = measureCharacterWidths();
   const api = createGrid<Item>(container, {
     ...OPTIONS,
+    columnDefs: COLUMN_DEFS.map((definition) =>
+      withFitWidth(definition, characterWidths),
+    ),
+    defaultColDef: {
+      ...OPTIONS.defaultColDef,
+      minWidth: fitColumnWidth(characterWidths, SHORTEST_HEADER, ""),
+    },
     isExternalFilterPresent: () =>
       state !== null && state.watchOnly && !bypassing,
     doesExternalFilterPass: (node) => {

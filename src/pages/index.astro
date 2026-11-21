@@ -86,13 +86,16 @@ import ViewSelector from "../components/ViewSelector.astro";
     banner.classList.remove("hidden");
   }
 
+  async function initGridAndViews(gridContainer: HTMLElement): Promise<void> {
+    await initGrid(gridContainer);
+    initViews();
+  }
+
   initIconErrorFallback();
 
   const container = document.getElementById("item-grid");
-  if (container !== null) {
-    initGrid(container);
-    initViews();
-  }
+  const gridReady: Promise<void> =
+    container !== null ? initGridAndViews(container) : Promise.resolve();
 
   startRefreshCountdown("refresh-countdown");
 
@@ -122,6 +125,7 @@ import ViewSelector from "../components/ViewSelector.astro";
     showLoading(true);
     try {
       const items = await fetchSnapshot();
+      await gridReady;
       setRowData(items);
       setDetailItems(items);
       startPollingOnce();
